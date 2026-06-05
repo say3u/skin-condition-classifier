@@ -62,18 +62,35 @@ jupyter notebook notebooks/01_train_ham10000_efficientnet.ipynb
 
 A CUDA GPU is strongly recommended; CPU training will be slow.
 
+## Two models
+
+There are two training notebooks in this repo because they cover different needs:
+
+| Notebook | Dataset | Classes | What it's for |
+|---|---|---|---|
+| `01_train_ham10000_efficientnet.ipynb` | HAM10000 (~10k dermatoscopic images) | **7** lesion types | High-precision cancer-focused triage. Biopsy-confirmed labels. |
+| `02_train_fitzpatrick17k_efficientnet.ipynb` | Fitzpatrick17k (~17k atlas images) | **~30** common conditions | Everyday-skin coverage (eczema, psoriasis, acne, rosacea, etc.) + **fairness analysis across skin tones**. |
+
+The HAM10000 model has higher top-1 accuracy but only knows 7 things — it'll confidently
+mislabel a photo of eczema as a mole. The Fitzpatrick17k model trades top-1 accuracy for
+breadth, and ships with a per-Fitzpatrick-skin-type performance breakdown so you can see
+whether the model is equally reliable across skin tones (a real, documented failure mode
+in dermatology AI).
+
 ## Project structure
 
 ```
 skin-condition-classifier/
 ├── notebooks/
-│   └── 01_train_ham10000_efficientnet.ipynb   # train the model
+│   ├── 01_train_ham10000_efficientnet.ipynb       # 7-class cancer triage model
+│   └── 02_train_fitzpatrick17k_efficientnet.ipynb # ~30-class broad model + fairness
 ├── app/
-│   └── desktop_app.py                         # local desktop UI (Gradio)
+│   └── desktop_app.py                             # local desktop UI (Gradio)
 ├── docs/
 │   ├── DATA.md      # how to obtain HAM10000 + dataset caveats
 │   └── ETHICS.md    # limitations, bias, and responsible-use notes
-├── skin_classifier_efficientnet_b0.pt         # trained weights (NOT in git)
+├── skin_classifier_efficientnet_b0.pt             # HAM10000 weights (NOT in git)
+├── skin_classifier_fitz17k_efficientnet_b0.pt    # Fitzpatrick17k weights (NOT in git)
 ├── requirements.txt
 ├── LICENSE
 └── README.md

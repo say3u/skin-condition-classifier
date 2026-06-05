@@ -6,6 +6,7 @@ datasets/
 *.tar.gz
 *.pt
 *.pth
+skin_classifier_fitz17k_efficientnet_b0.pt
 *.onnx
 *.h5
 *.ckpt
