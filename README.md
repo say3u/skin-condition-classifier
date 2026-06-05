@@ -67,14 +67,30 @@ A CUDA GPU is strongly recommended; CPU training will be slow.
 ```
 skin-condition-classifier/
 ├── notebooks/
-│   └── 01_train_ham10000_efficientnet.ipynb   # ← the main, runnable notebook
+│   └── 01_train_ham10000_efficientnet.ipynb   # train the model
+├── app/
+│   └── desktop_app.py                         # local desktop UI (Gradio)
 ├── docs/
 │   ├── DATA.md      # how to obtain HAM10000 + dataset caveats
 │   └── ETHICS.md    # limitations, bias, and responsible-use notes
+├── skin_classifier_efficientnet_b0.pt         # trained weights (NOT in git)
 ├── requirements.txt
 ├── LICENSE
 └── README.md
 ```
+
+## Running the desktop app
+
+After training the notebook (so `skin_classifier_efficientnet_b0.pt` is in the project root):
+
+```bash
+pip install -r requirements.txt
+python app/desktop_app.py
+```
+
+It opens a local Gradio window in your browser at `http://127.0.0.1:7860`. Drag in a photo,
+see the top-3 guesses and an honest "this is not a diagnosis" banner. No data leaves your
+machine.
 
 ## Results — baseline (EfficientNet-B0, 20 epochs on Colab T4)
 

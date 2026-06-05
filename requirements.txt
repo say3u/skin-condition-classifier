@@ -16,5 +16,8 @@ seaborn>=0.13
 # Utilities
 tqdm>=4.66
 
+# Desktop app UI (app/desktop_app.py)
+gradio>=4.0
+
 # Dataset download (HAM10000 from Kaggle). See docs/DATA.md.
 kaggle>=1.6
