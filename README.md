@@ -76,13 +76,21 @@ skin-condition-classifier/
 └── README.md
 ```
 
-## Results
+## Results — baseline (EfficientNet-B0, 20 epochs on Colab T4)
 
-_Fill these in after your first training run — the notebook prints everything you need:_
+| Metric | Value |
+|---|---|
+| Best validation macro-F1 | **0.730** |
+| Melanoma (`mel`) recall | **67.9%** |
+| Major confusion | benign moles called melanoma (false alarm); rare bkl ↔ nv mix |
 
-- Test macro-F1: `__`
-- Test accuracy: `__`
-- **Melanoma (`mel`) recall: `__`**  ← the number to watch
+**Reading the result honestly:**
+
+- A 67.9% melanoma recall means the model misses roughly 1 in 3 real melanomas. **That is unsafe as a real screen** — it's why the project ships with the "not a diagnosis" framing baked into the UI.
+- It *over*-flags melanoma on benign moles (false alarms), which is the safer direction to err but still annoying.
+- Training longer past 20 epochs barely moved the needle — going from 5 → 20 epochs only nudged mel recall from 64.2% → 67.9%. The real bottleneck is **class imbalance** (melanoma is ~11% of the dataset), not training time. Improving from here needs different interventions (focal loss, stronger melanoma-only augmentation, ensembling), not more epochs.
+
+See [`docs/ETHICS.md`](docs/ETHICS.md) for the full limitations write-up.
 
 ## Roadmap
 
