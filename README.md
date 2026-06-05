@@ -1,4 +1,4 @@
-# 🔬 Skin Condition Classifier (Educational)
+# Skin Condition Classifier (Educational)
 
 A personal project I'm building to learn computer vision properly: take a photo of a skin
 lesion and get the **top guesses** across 7 dermatological categories. The model comes first
