@@ -4,7 +4,7 @@ A personal project I'm building to learn computer vision properly: take a photo 
 lesion and get the **top guesses** across 7 dermatological categories. The model comes first
 (this repo), then a **desktop app**, and eventually a **phone app**.
 
-> ⚠️ **This is an educational / triage demo — NOT a medical device and NOT a diagnosis.**
+> **This is an educational / triage demo — NOT a medical device and NOT a diagnosis.**
 > It produces a statistical best-guess for learning purposes only. It must never be used
 > to make real health decisions. If you are worried about a skin lesion, see a licensed
 > dermatologist. See [`docs/ETHICS.md`](docs/ETHICS.md) for the full list of limitations.
