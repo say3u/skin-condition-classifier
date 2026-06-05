@@ -138,7 +138,7 @@ with gr.Blocks(title="Skin condition classifier") as demo:
     gr.Markdown(
         "---\n"
         "Built by David Nguyen as a learning project. "
-        "Code: github.com/dsayeu/skin-condition-classifier (placeholder until I push). "
+        "Code: github.com/say3u/skin-condition-classifier. "
         "See `docs/ETHICS.md` in the repo for the full limitations write-up."
     )
 
