@@ -1,0 +1,42 @@
+# ─── Data & models (never commit these — they're large / regenerable) ───
+data/
+datasets/
+*.zip
+*.tar
+*.tar.gz
+*.pt
+*.pth
+*.onnx
+*.h5
+*.ckpt
+checkpoints/
+runs/
+wandb/
+
+# Kaggle / cloud credentials — NEVER commit secrets
+kaggle.json
+*.env
+.env
+
+# ─── Python ───
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+
+# ─── Jupyter ───
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# ─── OS / IDE ───
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
