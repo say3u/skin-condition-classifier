@@ -78,10 +78,11 @@ MALIGNANCY = {
 LOW_CONFIDENCE_FLOOR = 0.40
 
 
-def predict(image: Image.Image):
-    """Returns a {label: probability} dict for the top 3 guesses + a markdown summary."""
+def predict(image: Image.Image, history: list | None):
+    """Classify + append to session history. Returns (label_probs, summary, history_state, gallery_items)."""
+    history = history or []
     if image is None:
-        return {}, "*Upload or drag in a photo to get a guess.*"
+        return {}, "*Upload or drag in a photo to get a guess.*", history, _history_to_gallery(history)
 
     img = image.convert("RGB")
     x = preprocess(img).unsqueeze(0).to(DEVICE)
@@ -93,14 +94,14 @@ def predict(image: Image.Image):
     top1_prob = float(probs[top_idx[0]])
     top1 = CLASSES[top_idx[0]]
 
-    # ----- Low-confidence path: be honest instead of guessing -----
+    # ----- Build the response -----
+    label_probs = {
+        f"{CLASSES[i]} - {FULL_NAMES[CLASSES[i]]} ({MALIGNANCY[CLASSES[i]]})": float(probs[i])
+        for i in top_idx
+    }
+
     if top1_prob < LOW_CONFIDENCE_FLOOR:
-        # Still show the top-3 so curious users can see what the model was thinking,
-        # but lead with a clear "I don't know" message.
-        label_probs = {
-            f"{CLASSES[i]} - {FULL_NAMES[CLASSES[i]]} ({MALIGNANCY[CLASSES[i]]})": float(probs[i])
-            for i in top_idx
-        }
+        # Low-confidence path: be honest instead of faking a confident wrong answer.
         summary = (
             f"### 🤷 I'm not confident about this one\n\n"
             f"My top guess is only **{top1_prob:.0%}** sure — below the threshold I trust "
@@ -112,29 +113,39 @@ def predict(image: Image.Image):
             f"Treat the guesses below as low-trust. If this is a real concern, see a "
             f"dermatologist — they'll do a much better job than this model."
         )
-        return label_probs, summary
+        history_caption = f"❓ uncertain ({top1_prob:.0%})"
+    else:
+        summary_lines = [
+            f"### Top guess: **{FULL_NAMES[top1]}** ({top1}) - {MALIGNANCY[top1]}",
+            "",
+            "This is a statistical guess from a model trained on ~10k dermatoscopic images. "
+            "It is NOT a medical opinion. Please see a dermatologist if you're actually worried.",
+        ]
+        if top1 == "mel" or any(CLASSES[i] in ("mel", "bcc", "akiec") for i in top_idx):
+            summary_lines.insert(
+                1,
+                "> **Heads up:** the top guesses include a potentially malignant or pre-malignant "
+                "category. Don't panic - false alarms are common - but this is a real reason to get "
+                "it checked by a dermatologist.",
+            )
+        summary = "\n".join(summary_lines)
+        emoji = "⚠️" if MALIGNANCY[top1] in ("cancerous", "pre-cancerous") else "✅"
+        history_caption = f"{emoji} {top1} - {top1_prob:.0%}"
 
-    # ----- Normal-confidence path -----
-    label_probs = {
-        f"{CLASSES[i]} - {FULL_NAMES[CLASSES[i]]} ({MALIGNANCY[CLASSES[i]]})": float(probs[i])
-        for i in top_idx
-    }
+    # ----- Append to history (keep last 5, newest first) -----
+    history = [(img.copy(), history_caption)] + (history or [])
+    history = history[:5]
 
-    summary_lines = [
-        f"### Top guess: **{FULL_NAMES[top1]}** ({top1}) - {MALIGNANCY[top1]}",
-        "",
-        "This is a statistical guess from a model trained on ~10k dermatoscopic images. "
-        "It is NOT a medical opinion. Please see a dermatologist if you're actually worried.",
-    ]
-    if top1 == "mel" or any(CLASSES[i] in ("mel", "bcc", "akiec") for i in top_idx):
-        summary_lines.insert(
-            1,
-            "> **Heads up:** the top guesses include a potentially malignant or pre-malignant "
-            "category. Don't panic - false alarms are common - but this is a real reason to get "
-            "it checked by a dermatologist.",
-        )
+    return label_probs, summary, history, _history_to_gallery(history)
 
-    return label_probs, "\n".join(summary_lines)
+
+def _history_to_gallery(history: list) -> list:
+    """Gradio Gallery expects [(image, caption), ...]."""
+    return [(im, cap) for im, cap in history]
+
+
+def clear_history():
+    return [], []
 
 
 # ----- UI -----
@@ -180,6 +191,9 @@ with gr.Blocks(title="Skin Condition Classifier", theme=theme) as demo:
     with gr.Accordion("How to use this app", open=True):
         gr.Markdown(HOW_TO_USE)
 
+    # Session-scoped history (lives in the browser tab, not on disk - no PII risk).
+    history_state = gr.State([])
+
     with gr.Row(equal_height=True):
         with gr.Column(scale=1):
             gr.Markdown("### 1. Your photo")
@@ -189,24 +203,43 @@ with gr.Blocks(title="Skin Condition Classifier", theme=theme) as demo:
                 sources=["upload", "clipboard"],
                 height=400,
             )
-            go = gr.Button("🔍 Classify", variant="primary", size="lg")
-            clear = gr.Button("Clear", variant="secondary")
+            with gr.Row():
+                go = gr.Button("🔍 Classify", variant="primary", size="lg", scale=2)
+                clear = gr.Button("Clear", variant="secondary", scale=1)
 
         with gr.Column(scale=1):
             gr.Markdown("### 2. Top-3 guesses")
             out_label = gr.Label(num_top_classes=3, label=None, show_label=False)
             out_text = gr.Markdown("*Upload or drag in a photo to get a guess.*")
 
+    with gr.Accordion("📜 Scan history (this session only)", open=False):
+        gr.Markdown(
+            "_The last 5 photos you classified, with the top guess. "
+            "Cleared when you close the tab — nothing is saved to disk._"
+        )
+        history_gallery = gr.Gallery(
+            label=None,
+            show_label=False,
+            columns=5,
+            height=180,
+            object_fit="cover",
+            preview=False,
+        )
+        clear_history_btn = gr.Button("Clear history", size="sm")
+
     gr.Markdown(FOOTER)
 
     # Wiring
-    go.click(predict, inputs=inp, outputs=[out_label, out_text])
-    inp.change(predict, inputs=inp, outputs=[out_label, out_text])
+    go.click(predict, inputs=[inp, history_state],
+             outputs=[out_label, out_text, history_state, history_gallery])
+    inp.change(predict, inputs=[inp, history_state],
+               outputs=[out_label, out_text, history_state, history_gallery])
     clear.click(
         lambda: (None, {}, "*Upload or drag in a photo to get a guess.*"),
         inputs=None,
         outputs=[inp, out_label, out_text],
     )
+    clear_history_btn.click(clear_history, inputs=None, outputs=[history_state, history_gallery])
 
 if __name__ == "__main__":
     # share=False keeps it local-only (no public URL). Set to True if you want to demo it remotely.
