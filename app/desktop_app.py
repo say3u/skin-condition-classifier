@@ -72,6 +72,12 @@ MALIGNANCY = {
 }
 
 
+# If top-1 is below this, the model basically doesn't know what it's looking at.
+# Better to admit it than fake a confident wrong answer (e.g. classifying a photo of
+# a wall, or pilaris, or anything outside the 7 trained classes).
+LOW_CONFIDENCE_FLOOR = 0.40
+
+
 def predict(image: Image.Image):
     """Returns a {label: probability} dict for the top 3 guesses + a markdown summary."""
     if image is None:
@@ -83,15 +89,37 @@ def predict(image: Image.Image):
     with torch.no_grad():
         probs = torch.softmax(model(x), dim=1).squeeze(0).cpu().numpy()
 
-    # top-3 for Gradio's Label component
     top_idx = probs.argsort()[::-1][:3]
+    top1_prob = float(probs[top_idx[0]])
+    top1 = CLASSES[top_idx[0]]
+
+    # ----- Low-confidence path: be honest instead of guessing -----
+    if top1_prob < LOW_CONFIDENCE_FLOOR:
+        # Still show the top-3 so curious users can see what the model was thinking,
+        # but lead with a clear "I don't know" message.
+        label_probs = {
+            f"{CLASSES[i]} - {FULL_NAMES[CLASSES[i]]} ({MALIGNANCY[CLASSES[i]]})": float(probs[i])
+            for i in top_idx
+        }
+        summary = (
+            f"### 🤷 I'm not confident about this one\n\n"
+            f"My top guess is only **{top1_prob:.0%}** sure — below the threshold I trust "
+            f"({int(LOW_CONFIDENCE_FLOOR * 100)}%). That usually means one of:\n\n"
+            f"- The photo isn't of a skin lesion at all (the model has no \"not skin\" class).\n"
+            f"- It *is* a lesion, but a kind I wasn't trained on (I only know 7 categories — "
+            f"acne, eczema, rosacea, keratosis pilaris and many others aren't in there).\n"
+            f"- The lighting / angle / focus is throwing me off.\n\n"
+            f"Treat the guesses below as low-trust. If this is a real concern, see a "
+            f"dermatologist — they'll do a much better job than this model."
+        )
+        return label_probs, summary
+
+    # ----- Normal-confidence path -----
     label_probs = {
         f"{CLASSES[i]} - {FULL_NAMES[CLASSES[i]]} ({MALIGNANCY[CLASSES[i]]})": float(probs[i])
         for i in top_idx
     }
 
-    # human-readable summary underneath
-    top1 = CLASSES[top_idx[0]]
     summary_lines = [
         f"### Top guess: **{FULL_NAMES[top1]}** ({top1}) - {MALIGNANCY[top1]}",
         "",
