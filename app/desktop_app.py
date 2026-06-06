@@ -537,10 +537,11 @@ with gr.Blocks(title="Skin Condition Classifier") as demo:
         )
 
 if __name__ == "__main__":
-    # In Gradio 6, theme and css moved from Blocks() to launch().
+    # share=True gives a public *.gradio.live URL that lasts 72 hours.
+    # The URL still tunnels through this machine, so this script has to keep running.
     demo.launch(
         server_name="127.0.0.1",
-        share=False,
+        share=True,
         inbrowser=True,
         theme=theme,
         css=CUSTOM_CSS,
