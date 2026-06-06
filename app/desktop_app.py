@@ -75,7 +75,7 @@ MALIGNANCY = {
 def predict(image: Image.Image):
     """Returns a {label: probability} dict for the top 3 guesses + a markdown summary."""
     if image is None:
-        return {}, "Upload or drag in a photo to get a guess."
+        return {}, "*Upload or drag in a photo to get a guess.*"
 
     img = image.convert("RGB")
     x = preprocess(img).unsqueeze(0).to(DEVICE)
@@ -93,7 +93,7 @@ def predict(image: Image.Image):
     # human-readable summary underneath
     top1 = CLASSES[top_idx[0]]
     summary_lines = [
-        f"**Top guess: `{top1}` ({FULL_NAMES[top1]}) - {MALIGNANCY[top1]}.**",
+        f"### Top guess: **{FULL_NAMES[top1]}** ({top1}) - {MALIGNANCY[top1]}",
         "",
         "This is a statistical guess from a model trained on ~10k dermatoscopic images. "
         "It is NOT a medical opinion. Please see a dermatologist if you're actually worried.",
@@ -101,45 +101,83 @@ def predict(image: Image.Image):
     if top1 == "mel" or any(CLASSES[i] in ("mel", "bcc", "akiec") for i in top_idx):
         summary_lines.insert(
             1,
-            "> Heads up: the top guesses include a potentially malignant or pre-malignant category. "
-            "Don't panic - false alarms are common - but this is a real reason to get it checked.",
+            "> **Heads up:** the top guesses include a potentially malignant or pre-malignant "
+            "category. Don't panic - false alarms are common - but this is a real reason to get "
+            "it checked by a dermatologist.",
         )
 
     return label_probs, "\n".join(summary_lines)
 
 
 # ----- UI -----
-DESCRIPTION = """
-# Skin condition classifier
-
-Drop in a photo of a skin lesion. The model returns its top-3 guesses across 7 categories
-from the HAM10000 dataset.
-
-**This is not a diagnosis.** It's a personal learning project. The model was trained on
-dermatoscopic images (a clinical lens pressed against the skin), so ordinary phone photos
-will perform notably worse. If something on your skin worries you, see a dermatologist.
+HEADER = """
+# 🔬 Skin Condition Classifier
+#### A personal learning project — not a diagnostic tool.
 """
 
-with gr.Blocks(title="Skin condition classifier") as demo:
-    gr.Markdown(DESCRIPTION)
+HOW_TO_USE = """
+### How to use
 
-    with gr.Row():
-        with gr.Column(scale=1):
-            inp = gr.Image(type="pil", label="Skin lesion photo", sources=["upload", "clipboard"])
-            go = gr.Button("Classify", variant="primary")
-        with gr.Column(scale=1):
-            out_label = gr.Label(num_top_classes=3, label="Top 3 guesses")
-            out_text = gr.Markdown()
+1. **Drop or upload a photo** of a skin lesion on the left.
+2. The model returns its **top-3 guesses** across 7 dermatology categories on the right.
+3. Each guess shows whether it's *benign*, *pre-cancerous*, or *cancerous* — and how confident the model is.
 
+⚠️ **This is not a diagnosis.** It's trained on clinical dermatoscope images (a lens pressed
+against the skin), so ordinary phone photos won't perform as well. If something on your skin
+worries you, **see a dermatologist** — that's the only right answer here.
+"""
+
+FOOTER = """
+---
+Built by **David Nguyen** as a learning project. The model is fine-tuned EfficientNet-B0
+on the [HAM10000](https://www.nature.com/articles/sdata2018161) dataset (~10k images, 7
+classes).
+
+Source code & limitations: [github.com/say3u/skin-condition-classifier](https://github.com/say3u/skin-condition-classifier)
+"""
+
+# Soft theme is friendlier than the default; primary_hue=teal reads as medical/clean.
+theme = gr.themes.Soft(
+    primary_hue="teal",
+    secondary_hue="blue",
+    neutral_hue="slate",
+).set(
+    button_primary_background_fill="*primary_500",
+    button_primary_background_fill_hover="*primary_600",
+)
+
+with gr.Blocks(title="Skin Condition Classifier", theme=theme) as demo:
+    gr.Markdown(HEADER)
+
+    with gr.Accordion("How to use this app", open=True):
+        gr.Markdown(HOW_TO_USE)
+
+    with gr.Row(equal_height=True):
+        with gr.Column(scale=1):
+            gr.Markdown("### 1. Your photo")
+            inp = gr.Image(
+                type="pil",
+                label=None,
+                sources=["upload", "clipboard"],
+                height=400,
+            )
+            go = gr.Button("🔍 Classify", variant="primary", size="lg")
+            clear = gr.Button("Clear", variant="secondary")
+
+        with gr.Column(scale=1):
+            gr.Markdown("### 2. Top-3 guesses")
+            out_label = gr.Label(num_top_classes=3, label=None, show_label=False)
+            out_text = gr.Markdown("*Upload or drag in a photo to get a guess.*")
+
+    gr.Markdown(FOOTER)
+
+    # Wiring
     go.click(predict, inputs=inp, outputs=[out_label, out_text])
-    # also fire on image change so you don't have to click
     inp.change(predict, inputs=inp, outputs=[out_label, out_text])
-
-    gr.Markdown(
-        "---\n"
-        "Built by David Nguyen as a learning project. "
-        "Code: github.com/say3u/skin-condition-classifier. "
-        "See `docs/ETHICS.md` in the repo for the full limitations write-up."
+    clear.click(
+        lambda: (None, {}, "*Upload or drag in a photo to get a guess.*"),
+        inputs=None,
+        outputs=[inp, out_label, out_text],
     )
 
 if __name__ == "__main__":
