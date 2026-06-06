@@ -28,7 +28,6 @@ MODEL_PATH = PROJECT_ROOT / "skin_classifier_efficientnet_b0.pt"
 EXAMPLES_DIR = PROJECT_ROOT / "app" / "examples"
 
 # ----- load the model once at startup -----
-# (don't reload on every prediction - that would take seconds per click)
 if not MODEL_PATH.exists():
     raise FileNotFoundError(
         f"Couldn't find the model at {MODEL_PATH}.\n"
@@ -44,14 +43,13 @@ CLASSES = ckpt["classes"]
 FULL_NAMES = ckpt["full_names"]
 IMG_SIZE = ckpt.get("img_size", 224)
 
-# rebuild the same architecture and load weights
 model = models.efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1)
 model.classifier[1] = nn.Linear(model.classifier[1].in_features, len(CLASSES))
 model.load_state_dict(ckpt["model_state"])
 model.to(DEVICE).eval()
 print(f"model loaded - {len(CLASSES)} classes: {CLASSES}")
 
-# same eval transform as the notebook (matters - mismatched preprocessing = garbage predictions)
+# Same eval transform as the notebook - mismatched preprocessing means garbage predictions.
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 preprocess = transforms.Compose([
@@ -61,7 +59,6 @@ preprocess = transforms.Compose([
     transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
 ])
 
-# malignancy hint shown next to each prediction - keeps the user oriented
 MALIGNANCY = {
     "akiec": "pre-cancerous",
     "bcc":   "cancerous",
@@ -72,18 +69,18 @@ MALIGNANCY = {
     "vasc":  "benign",
 }
 
-
 # If top-1 is below this, the model basically doesn't know what it's looking at.
-# Better to admit it than fake a confident wrong answer (e.g. classifying a photo of
-# a wall, or pilaris, or anything outside the 7 trained classes).
+# Better to admit it than fake a confident wrong answer.
 LOW_CONFIDENCE_FLOOR = 0.40
+
+EMPTY_HINT = "Drop a photo on the left to get a guess."
 
 
 def predict(image: Image.Image, history: list | None):
-    """Classify + append to session history. Returns (label_probs, summary, history_state, gallery_items)."""
+    """Classify + append to session history. Returns (label_probs, summary, history_state, gallery)."""
     history = history or []
     if image is None:
-        return {}, "*Upload or drag in a photo to get a guess.*", history, _history_to_gallery(history)
+        return {}, EMPTY_HINT, history, _history_to_gallery(history)
 
     img = image.convert("RGB")
     x = preprocess(img).unsqueeze(0).to(DEVICE)
@@ -95,53 +92,48 @@ def predict(image: Image.Image, history: list | None):
     top1_prob = float(probs[top_idx[0]])
     top1 = CLASSES[top_idx[0]]
 
-    # ----- Build the response -----
     label_probs = {
-        f"{CLASSES[i]} - {FULL_NAMES[CLASSES[i]]} ({MALIGNANCY[CLASSES[i]]})": float(probs[i])
+        f"{FULL_NAMES[CLASSES[i]]} ({CLASSES[i]}, {MALIGNANCY[CLASSES[i]]})": float(probs[i])
         for i in top_idx
     }
 
     if top1_prob < LOW_CONFIDENCE_FLOOR:
-        # Low-confidence path: be honest instead of faking a confident wrong answer.
         summary = (
-            f"### 🤷 I'm not confident about this one\n\n"
-            f"My top guess is only **{top1_prob:.0%}** sure — below the threshold I trust "
-            f"({int(LOW_CONFIDENCE_FLOOR * 100)}%). That usually means one of:\n\n"
-            f"- The photo isn't of a skin lesion at all (the model has no \"not skin\" class).\n"
-            f"- It *is* a lesion, but a kind I wasn't trained on (I only know 7 categories — "
-            f"acne, eczema, rosacea, keratosis pilaris and many others aren't in there).\n"
-            f"- The lighting / angle / focus is throwing me off.\n\n"
-            f"Treat the guesses below as low-trust. If this is a real concern, see a "
-            f"dermatologist — they'll do a much better job than this model."
+            f"#### Low confidence\n\n"
+            f"The top guess is only {top1_prob:.0%} sure, below the "
+            f"{int(LOW_CONFIDENCE_FLOOR * 100)}% threshold this app trusts. That usually means:\n\n"
+            f"- The photo isn't a skin lesion (there's no \"not skin\" class in the model).\n"
+            f"- It is a lesion, but a kind the model wasn't trained on. Only seven categories "
+            f"are in the training set; acne, eczema, rosacea, and many others are not.\n"
+            f"- The lighting, focus, or angle is throwing the model off.\n\n"
+            f"Treat the guesses below as low trust. If you're actually worried about something "
+            f"on your skin, see a dermatologist."
         )
-        history_caption = f"❓ uncertain ({top1_prob:.0%})"
+        history_caption = f"low confidence ({top1_prob:.0%})"
     else:
-        summary_lines = [
-            f"### Top guess: **{FULL_NAMES[top1]}** ({top1}) - {MALIGNANCY[top1]}",
+        lines = [
+            f"#### Top guess: {FULL_NAMES[top1]}",
+            f"_{top1} — {MALIGNANCY[top1]} — {top1_prob:.0%} confidence_",
             "",
-            "This is a statistical guess from a model trained on ~10k dermatoscopic images. "
-            "It is NOT a medical opinion. Please see a dermatologist if you're actually worried.",
+            "A statistical guess from a model trained on roughly ten thousand "
+            "dermatoscopic images. It is not a medical opinion. If you're actually "
+            "concerned, see a dermatologist.",
         ]
         if top1 == "mel" or any(CLASSES[i] in ("mel", "bcc", "akiec") for i in top_idx):
-            summary_lines.insert(
-                1,
-                "> **Heads up:** the top guesses include a potentially malignant or pre-malignant "
-                "category. Don't panic - false alarms are common - but this is a real reason to get "
-                "it checked by a dermatologist.",
+            lines.insert(
+                2,
+                "> The top guesses include a potentially malignant or pre-malignant category. "
+                "False alarms are common, but this is a real reason to get it checked.",
             )
-        summary = "\n".join(summary_lines)
-        emoji = "⚠️" if MALIGNANCY[top1] in ("cancerous", "pre-cancerous") else "✅"
-        history_caption = f"{emoji} {top1} - {top1_prob:.0%}"
+        summary = "\n".join(lines)
+        history_caption = f"{top1} — {top1_prob:.0%} — {MALIGNANCY[top1]}"
 
-    # ----- Append to history (keep last 5, newest first) -----
-    history = [(img.copy(), history_caption)] + (history or [])
+    history = [(img.copy(), history_caption)] + history
     history = history[:5]
-
     return label_probs, summary, history, _history_to_gallery(history)
 
 
 def _history_to_gallery(history: list) -> list:
-    """Gradio Gallery expects [(image, caption), ...]."""
     return [(im, cap) for im, cap in history]
 
 
@@ -150,65 +142,89 @@ def clear_history():
 
 
 # ----- UI -----
-HEADER = """
-# 🔬 Skin Condition Classifier
-#### A personal learning project — not a diagnostic tool.
+HEADER_MD = """
+<div class="app-header">
+  <h1>Skin Condition Classifier</h1>
+  <p class="subtitle">A learning project — not a diagnostic tool.</p>
+</div>
 """
 
-HOW_TO_USE = """
-### How to use
+INTRO_MD = """
+Upload a photo of a skin lesion and the model returns its top three guesses across seven
+categories from the HAM10000 dataset. Every guess is labelled benign, pre-cancerous, or
+cancerous, with a confidence number.
 
-1. **Drop or upload a photo** of a skin lesion on the left.
-2. The model returns its **top-3 guesses** across 7 dermatology categories on the right.
-3. Each guess shows whether it's *benign*, *pre-cancerous*, or *cancerous* — and how confident the model is.
-
-⚠️ **This is not a diagnosis.** It's trained on clinical dermatoscope images (a lens pressed
-against the skin), so ordinary phone photos won't perform as well. If something on your skin
-worries you, **see a dermatologist** — that's the only right answer here.
+This is not a diagnosis. The model was trained on clinical dermatoscope images, so ordinary
+phone photos will perform noticeably worse. If something on your skin worries you, see a
+dermatologist.
 """
 
-FOOTER = """
----
-Built by **David Nguyen** as a learning project. The model is fine-tuned EfficientNet-B0
-on the [HAM10000](https://www.nature.com/articles/sdata2018161) dataset (~10k images, 7
-classes).
-
-Source code & limitations: [github.com/say3u/skin-condition-classifier](https://github.com/say3u/skin-condition-classifier)
+FOOTER_MD = """
+<div class="app-footer">
+  Built by David Nguyen. Fine-tuned EfficientNet-B0 on HAM10000.
+  <a href="https://github.com/say3u/skin-condition-classifier">Source &amp; limitations</a>.
+</div>
 """
 
-# Soft theme is friendlier than the default; primary_hue=teal reads as medical/clean.
+# Quiet, restrained theme. Slate neutrals + a single muted accent.
 theme = gr.themes.Soft(
-    primary_hue="teal",
-    secondary_hue="blue",
+    primary_hue=gr.themes.Color(
+        c50="#f5f7fa", c100="#e4e9f0", c200="#cdd5e0", c300="#a8b3c4",
+        c400="#7d8aa1", c500="#566479", c600="#3f4a5c", c700="#303948",
+        c800="#222936", c900="#171c26", c950="#0e121a",
+    ),
+    secondary_hue="slate",
     neutral_hue="slate",
+    font=[gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif"],
+    radius_size=gr.themes.sizes.radius_md,
+    spacing_size=gr.themes.sizes.spacing_md,
 ).set(
-    button_primary_background_fill="*primary_500",
-    button_primary_background_fill_hover="*primary_600",
+    body_background_fill="#fafbfc",
+    body_background_fill_dark="#0f1116",
+    block_background_fill="white",
+    block_background_fill_dark="#161922",
+    block_border_width="1px",
+    block_border_color="#e6e8ec",
+    block_border_color_dark="#252834",
+    block_shadow="0 1px 2px rgba(15, 17, 22, 0.04)",
+    block_title_text_weight="600",
+    block_label_text_weight="500",
+    button_primary_background_fill="*primary_700",
+    button_primary_background_fill_hover="*primary_800",
+    button_primary_text_color="white",
 )
 
-with gr.Blocks(title="Skin Condition Classifier", theme=theme) as demo:
-    gr.Markdown(HEADER)
+CUSTOM_CSS = """
+.gradio-container { max-width: 980px !important; margin: 0 auto !important; }
+.app-header { padding: 24px 0 8px; border-bottom: 1px solid #e6e8ec; margin-bottom: 16px; }
+.app-header h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; color: #1f2330; }
+.app-header .subtitle { margin: 4px 0 0; color: #6b7280; font-size: 14px; }
+.app-footer { padding: 16px 0 8px; border-top: 1px solid #e6e8ec; margin-top: 24px; color: #6b7280; font-size: 13px; }
+.app-footer a { color: #3f4a5c; text-decoration: none; border-bottom: 1px solid #d4d8df; }
+.app-footer a:hover { color: #1f2330; }
+.section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; margin: 0 0 8px; font-weight: 600; }
+footer { display: none !important; }
+"""
 
-    with gr.Accordion("How to use this app", open=True):
-        gr.Markdown(HOW_TO_USE)
+with gr.Blocks(title="Skin Condition Classifier", theme=theme, css=CUSTOM_CSS) as demo:
+    gr.HTML(HEADER_MD)
+    gr.Markdown(INTRO_MD)
 
-    # Session-scoped history (lives in the browser tab, not on disk - no PII risk).
     history_state = gr.State([])
 
-    with gr.Row(equal_height=True):
+    with gr.Row(equal_height=False):
         with gr.Column(scale=1):
-            gr.Markdown("### 1. Your photo")
+            gr.HTML('<p class="section-label">Photo</p>')
             inp = gr.Image(
                 type="pil",
-                label=None,
+                show_label=False,
                 sources=["upload", "clipboard"],
-                height=400,
+                height=380,
             )
             with gr.Row():
-                go = gr.Button("🔍 Classify", variant="primary", size="lg", scale=2)
+                go = gr.Button("Classify", variant="primary", scale=2)
                 clear = gr.Button("Clear", variant="secondary", scale=1)
 
-            # Click-to-try examples (anything in app/examples/ shows up here).
             example_files = sorted(
                 [str(p) for p in EXAMPLES_DIR.glob("*.jpg")] +
                 [str(p) for p in EXAMPLES_DIR.glob("*.png")]
@@ -217,37 +233,30 @@ with gr.Blocks(title="Skin Condition Classifier", theme=theme) as demo:
                 gr.Examples(
                     examples=[[p] for p in example_files],
                     inputs=[inp],
-                    label="Or click an example to try",
+                    label="Examples",
                     examples_per_page=8,
-                )
-            else:
-                gr.Markdown(
-                    "_No example images set up yet. Run `python app/get_examples.py` "
-                    "from the project root, or drop a few `.jpg` files into "
-                    "`app/examples/` to get click-to-try buttons here._",
                 )
 
         with gr.Column(scale=1):
-            gr.Markdown("### 2. Top-3 guesses")
-            out_label = gr.Label(num_top_classes=3, label=None, show_label=False)
-            out_text = gr.Markdown("*Upload or drag in a photo to get a guess.*")
+            gr.HTML('<p class="section-label">Top three guesses</p>')
+            out_label = gr.Label(num_top_classes=3, show_label=False)
+            out_text = gr.Markdown(EMPTY_HINT)
 
-    with gr.Accordion("📜 Scan history (this session only)", open=False):
+    with gr.Accordion("Recent scans (this session)", open=False):
         gr.Markdown(
-            "_The last 5 photos you classified, with the top guess. "
-            "Cleared when you close the tab — nothing is saved to disk._"
+            "The last five photos you classified. Cleared when the tab closes; "
+            "nothing is saved to disk."
         )
         history_gallery = gr.Gallery(
-            label=None,
             show_label=False,
             columns=5,
-            height=180,
+            height=160,
             object_fit="cover",
             preview=False,
         )
         clear_history_btn = gr.Button("Clear history", size="sm")
 
-    gr.Markdown(FOOTER)
+    gr.HTML(FOOTER_MD)
 
     # Wiring
     go.click(predict, inputs=[inp, history_state],
@@ -255,12 +264,11 @@ with gr.Blocks(title="Skin Condition Classifier", theme=theme) as demo:
     inp.change(predict, inputs=[inp, history_state],
                outputs=[out_label, out_text, history_state, history_gallery])
     clear.click(
-        lambda: (None, {}, "*Upload or drag in a photo to get a guess.*"),
+        lambda: (None, {}, EMPTY_HINT),
         inputs=None,
         outputs=[inp, out_label, out_text],
     )
     clear_history_btn.click(clear_history, inputs=None, outputs=[history_state, history_gallery])
 
 if __name__ == "__main__":
-    # share=False keeps it local-only (no public URL). Set to True if you want to demo it remotely.
     demo.launch(server_name="127.0.0.1", share=False, inbrowser=True)
