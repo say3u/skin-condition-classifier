@@ -451,7 +451,7 @@ theme = gr.themes.Monochrome(
     font=[gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif"],
 )
 
-with gr.Blocks(title="Skin Condition Classifier", theme=theme, css=CUSTOM_CSS) as demo:
+with gr.Blocks(title="Skin Condition Classifier") as demo:
     gr.HTML(HEADER_HTML)
 
     # State carried across screens
@@ -465,7 +465,6 @@ with gr.Blocks(title="Skin Condition Classifier", theme=theme, css=CUSTOM_CSS) a
             sources=["webcam", "upload", "clipboard"],
             height=420,
             show_label=False,
-            show_download_button=False,
         )
         classify_btn = gr.Button("Classify", variant="primary", size="lg")
 
@@ -487,7 +486,6 @@ with gr.Blocks(title="Skin Condition Classifier", theme=theme, css=CUSTOM_CSS) a
             show_label=False,
             interactive=False,
             height=200,
-            show_download_button=False,
             container=False,
         )
         out_label = gr.Label(num_top_classes=3, show_label=False)
@@ -532,4 +530,11 @@ with gr.Blocks(title="Skin Condition Classifier", theme=theme, css=CUSTOM_CSS) a
         )
 
 if __name__ == "__main__":
-    demo.launch(server_name="127.0.0.1", share=False, inbrowser=True)
+    # In Gradio 6, theme and css moved from Blocks() to launch().
+    demo.launch(
+        server_name="127.0.0.1",
+        share=False,
+        inbrowser=True,
+        theme=theme,
+        css=CUSTOM_CSS,
+    )
