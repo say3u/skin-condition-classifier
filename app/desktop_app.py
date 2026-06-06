@@ -393,11 +393,15 @@ INTRO_MD = (
 # Pure black-and-white CSS.
 CUSTOM_CSS = """
 .gradio-container {
-    max-width: 620px !important;
+    max-width: 960px !important;
     margin: 0 auto !important;
-    padding: 32px 20px 48px !important;
+    padding: 32px 40px 48px !important;
     background: #ffffff !important;
 }
+
+/* Buttons shouldn't stretch the full width of the desktop rectangle - looks weird. */
+.action-row { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+.action-row button { min-width: 200px; max-width: 320px; flex: 1; }
 body { background: #ffffff !important; color: #000 !important; }
 
 /* Header / footer */
@@ -466,7 +470,8 @@ with gr.Blocks(title="Skin Condition Classifier") as demo:
             height=420,
             show_label=False,
         )
-        classify_btn = gr.Button("Classify", variant="primary", size="lg")
+        with gr.Row(elem_classes="action-row"):
+            classify_btn = gr.Button("Classify", variant="primary", size="lg")
 
         example_files = sorted(
             [str(p) for p in EXAMPLES_DIR.glob("*.jpg")] +
@@ -490,14 +495,16 @@ with gr.Blocks(title="Skin Condition Classifier") as demo:
         )
         out_label = gr.Label(num_top_classes=3, show_label=False)
         out_text = gr.Markdown()
-        info_btn = gr.Button("More information", variant="primary")
-        retry_btn = gr.Button("Try another photo", variant="secondary")
+        with gr.Row(elem_classes="action-row"):
+            info_btn = gr.Button("More information", variant="primary")
+            retry_btn = gr.Button("Try another photo", variant="secondary")
 
     # ============ Screen 3 — Info ============
     with gr.Group(visible=False) as info_screen:
         info_md = gr.Markdown()
-        back_btn = gr.Button("Back to results", variant="primary")
-        retry_btn2 = gr.Button("Try another photo", variant="secondary")
+        with gr.Row(elem_classes="action-row"):
+            back_btn = gr.Button("Back to results", variant="primary")
+            retry_btn2 = gr.Button("Try another photo", variant="secondary")
 
     gr.HTML(FOOTER_HTML)
 
