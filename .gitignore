@@ -19,6 +19,11 @@ kaggle.json
 *.env
 .env
 
+# Example images for the desktop app are user-supplied (often medical), keep them out of git
+app/examples/*.jpg
+app/examples/*.jpeg
+app/examples/*.png
+
 # ─── Python ───
 __pycache__/
 *.py[cod]

@@ -109,6 +109,16 @@ It opens a local Gradio window in your browser at `http://127.0.0.1:7860`. Drag 
 see the top-3 guesses and an honest "this is not a diagnosis" banner. No data leaves your
 machine.
 
+**Want click-to-try example images** so you don't have to find your own photo first?
+
+```bash
+python app/get_examples.py
+```
+
+That copies 4 sample images out of your local HAM10000 download (if you have one) into
+`app/examples/`, where the app picks them up automatically. Or drop your own `.jpg` files
+in there directly.
+
 ## Results — baseline (EfficientNet-B0, 20 epochs on Colab T4)
 
 | Metric | Value |

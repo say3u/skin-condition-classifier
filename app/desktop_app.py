@@ -25,6 +25,7 @@ from torchvision.models import EfficientNet_B0_Weights
 # ----- paths -----
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = PROJECT_ROOT / "skin_classifier_efficientnet_b0.pt"
+EXAMPLES_DIR = PROJECT_ROOT / "app" / "examples"
 
 # ----- load the model once at startup -----
 # (don't reload on every prediction - that would take seconds per click)
@@ -206,6 +207,25 @@ with gr.Blocks(title="Skin Condition Classifier", theme=theme) as demo:
             with gr.Row():
                 go = gr.Button("🔍 Classify", variant="primary", size="lg", scale=2)
                 clear = gr.Button("Clear", variant="secondary", scale=1)
+
+            # Click-to-try examples (anything in app/examples/ shows up here).
+            example_files = sorted(
+                [str(p) for p in EXAMPLES_DIR.glob("*.jpg")] +
+                [str(p) for p in EXAMPLES_DIR.glob("*.png")]
+            )
+            if example_files:
+                gr.Examples(
+                    examples=[[p] for p in example_files],
+                    inputs=[inp],
+                    label="Or click an example to try",
+                    examples_per_page=8,
+                )
+            else:
+                gr.Markdown(
+                    "_No example images set up yet. Run `python app/get_examples.py` "
+                    "from the project root, or drop a few `.jpg` files into "
+                    "`app/examples/` to get click-to-try buttons here._",
+                )
 
         with gr.Column(scale=1):
             gr.Markdown("### 2. Top-3 guesses")
