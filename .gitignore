@@ -6,8 +6,9 @@ datasets/
 *.tar.gz
 *.pt
 *.pth
-skin_classifier_fitz17k_efficientnet_b0.pt
 *.onnx
+# Exception: the production model IS tracked (via Git LFS) so HF Spaces can serve it.
+!skin_classifier_efficientnet_b0.pt
 *.h5
 *.ckpt
 checkpoints/
