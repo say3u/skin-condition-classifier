@@ -115,7 +115,7 @@ After training the notebook (so `skin_classifier_efficientnet_b0.pt` is in the p
 
 ```bash
 pip install -r requirements.txt
-python app/desktop_app.py
+python app.py
 ```
 
 It opens a local Gradio window in your browser at `http://127.0.0.1:7860`. Drag in a photo,
