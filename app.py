@@ -395,27 +395,25 @@ INTRO_MD = (
     "dermatologist.*"
 )
 
-# Skincare-brand aesthetic: warm cream + sage accent + serif headline.
-# Palette: bg #f5efe6 (warm cream), text #2d2419 (deep walnut), accent #6f8a6a (muted sage),
-# secondary text #8a7866 (warm taupe), borders #e6dccc (sand).
+# Cream + sage aesthetic. KEY LESSON FROM LAST PASS: don't style `.block` globally - that
+# class is on every Gradio component (buttons, images, rows, spacers), and you end up
+# wrapping the webcam viewer in a cream card. Style the page, the typography, and the
+# buttons. Let Gradio handle component chrome.
 CUSTOM_CSS = """
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap');
 
+/* ===== Page ===== */
 .gradio-container {
-    max-width: 860px !important;
+    max-width: 720px !important;
     margin: 0 auto !important;
-    padding: 56px 36px 72px !important;
+    padding: 56px 32px 72px !important;
     background: #f5efe6 !important;
     font-family: 'Inter', system-ui, sans-serif !important;
 }
-body { background: #f5efe6 !important; color: #2d2419 !important; }
+body { background: #f5efe6 !important; color: #2d2419 !important; font-family: 'Inter', system-ui, sans-serif; }
 
-/* ===== Header ===== */
-.app-header {
-    text-align: center;
-    padding-bottom: 36px; margin-bottom: 44px;
-    border-bottom: 1px solid #e6dccc;
-}
+/* ===== Header (custom HTML, scoped via .app-header) ===== */
+.app-header { text-align: center; margin-bottom: 40px; }
 .app-mark {
     display: inline-block; width: 14px; height: 14px;
     background: #6f8a6a; border-radius: 50%;
@@ -424,7 +422,7 @@ body { background: #f5efe6 !important; color: #2d2419 !important; }
 .app-header h1 {
     margin: 0;
     font-family: 'DM Serif Display', Georgia, serif !important;
-    font-size: 38px; font-weight: 400; letter-spacing: -0.01em;
+    font-size: 40px; font-weight: 400; letter-spacing: -0.01em;
     color: #2d2419; line-height: 1.1;
 }
 .app-header .subtitle {
@@ -432,12 +430,12 @@ body { background: #f5efe6 !important; color: #2d2419 !important; }
     letter-spacing: 0.02em;
 }
 
-/* ===== Footer ===== */
+/* ===== Footer (custom HTML, scoped via .app-footer) ===== */
 .app-footer {
-    text-align: center; padding-top: 36px; margin-top: 56px;
+    text-align: center; padding-top: 32px; margin-top: 48px;
     border-top: 1px solid #e6dccc;
-    font-size: 12px; color: #8a7866;
-    letter-spacing: 0.04em; text-transform: uppercase;
+    font-size: 11px; color: #8a7866;
+    letter-spacing: 0.14em; text-transform: uppercase;
 }
 .app-footer a {
     color: #6f8a6a; text-decoration: none; font-weight: 600;
@@ -446,15 +444,56 @@ body { background: #f5efe6 !important; color: #2d2419 !important; }
 }
 .app-footer a:hover { border-bottom-color: #6f8a6a; }
 
-/* ===== Cards ===== */
-.block, .gr-block, .gr-form, .form {
-    border-radius: 14px !important;
-    box-shadow: 0 1px 2px rgba(45, 36, 25, 0.04), 0 4px 16px rgba(45, 36, 25, 0.04) !important;
-    background: #fbf6ed !important;
-    border: 1px solid #ebe1d2 !important;
+/* ===== Intro paragraph (just under the header) ===== */
+.gradio-container .prose, .gradio-container .markdown {
+    color: #4a3f30;
 }
 
-/* Component labels - small caps, taupe */
+/* ===== Buttons - rounded, sage primary, scoped to direct buttons only ===== */
+.gradio-container button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    padding: 12px 24px !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: 0.01em !important;
+    font-size: 14px !important;
+}
+.gradio-container button.primary,
+.gradio-container .primary > button,
+.gradio-container button[variant="primary"] {
+    background: #6f8a6a !important; color: #fbf6ed !important;
+    border: 1px solid #6f8a6a !important;
+    box-shadow: 0 1px 3px rgba(111, 138, 106, 0.2) !important;
+}
+.gradio-container button.primary:hover,
+.gradio-container .primary > button:hover {
+    background: #587256 !important; border-color: #587256 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(88, 114, 86, 0.25) !important;
+}
+.gradio-container button.secondary,
+.gradio-container .secondary > button {
+    background: transparent !important; color: #6f8a6a !important;
+    border: 1px solid #c4b8a4 !important;
+    box-shadow: none !important;
+}
+.gradio-container button.secondary:hover,
+.gradio-container .secondary > button:hover {
+    background: #ebe1d2 !important; color: #2d2419 !important;
+    border-color: #c4b8a4 !important;
+}
+.gradio-container button[disabled] {
+    background: #ebe1d2 !important; color: #b8a98f !important;
+    border-color: #ebe1d2 !important; cursor: not-allowed;
+    transform: none !important; box-shadow: none !important;
+}
+
+/* Action button row */
+.action-row { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+.action-row > * { min-width: 160px; max-width: 260px; flex: 1; }
+
+/* ===== Component labels - softened gray-taupe small caps ===== */
 .block-label, label > span:first-child {
     color: #8a7866 !important;
     font-weight: 600 !important;
@@ -463,75 +502,37 @@ body { background: #f5efe6 !important; color: #2d2419 !important; }
     letter-spacing: 0.14em !important;
 }
 
-/* ===== Buttons - rounded, sage primary ===== */
-button {
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    font-family: 'Inter', system-ui, sans-serif !important;
-    padding: 13px 26px !important;
-    transition: all 0.22s ease !important;
-    letter-spacing: 0.01em !important;
-    font-size: 14px !important;
-}
-.primary, button.primary {
-    background: #6f8a6a !important; color: #fbf6ed !important;
-    border: 1px solid #6f8a6a !important;
-    box-shadow: 0 1px 3px rgba(111, 138, 106, 0.25);
-}
-.primary:hover, button.primary:hover {
-    background: #587256 !important; border-color: #587256 !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(88, 114, 86, 0.3);
-}
-.secondary, button.secondary {
-    background: transparent !important; color: #6f8a6a !important;
-    border: 1px solid #c4b8a4 !important;
-}
-.secondary:hover, button.secondary:hover {
-    background: #ebe1d2 !important; color: #2d2419 !important;
-    border-color: #c4b8a4 !important;
-}
-button[disabled], button.primary[disabled] {
-    background: #ebe1d2 !important; color: #b8a98f !important;
-    border-color: #ebe1d2 !important; cursor: not-allowed;
-    transform: none !important; box-shadow: none !important;
-}
-
-/* Action button row */
-.action-row { display: flex; gap: 14px; justify-content: center; margin-top: 24px; }
-.action-row button { min-width: 180px; max-width: 280px; flex: 1; }
-
-/* ===== Confidence bars - sage ===== */
+/* ===== Confidence bars - sage gradient ===== */
 .label-wrap .bar, .output-class .bar {
     background: linear-gradient(90deg, #6f8a6a 0%, #8aa885 100%) !important;
     border-radius: 4px !important;
 }
 
-/* ===== Markdown typography - serif headline + warm Inter body ===== */
-.markdown h1 {
+/* ===== Markdown typography (for the intro + info screen) ===== */
+.gradio-container h1 {
     font-family: 'DM Serif Display', Georgia, serif !important;
-    font-size: 32px; font-weight: 400; letter-spacing: -0.01em;
+    font-size: 30px; font-weight: 400; letter-spacing: -0.01em;
     margin: 0 0 8px; color: #2d2419; line-height: 1.2;
 }
-.markdown h2 {
-    font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em;
-    margin: 32px 0 14px; color: #6f8a6a; font-weight: 700;
+.gradio-container h2 {
+    font-size: 10px !important; text-transform: uppercase; letter-spacing: 0.16em !important;
+    margin: 28px 0 12px; color: #6f8a6a !important; font-weight: 700 !important;
 }
-.markdown h3, .markdown h4 {
-    font-size: 16px; font-weight: 600; margin: 20px 0 8px; color: #2d2419;
+.gradio-container h3, .gradio-container h4 {
+    font-size: 15px; font-weight: 600; margin: 18px 0 6px; color: #2d2419;
 }
-.markdown p { line-height: 1.7; color: #4a3f30; margin: 10px 0; font-size: 15px; }
-.markdown ul { padding-left: 22px; }
-.markdown li { margin: 8px 0; line-height: 1.6; color: #4a3f30; font-size: 15px; }
-.markdown blockquote {
+.gradio-container p { line-height: 1.7; color: #4a3f30; margin: 10px 0; font-size: 15px; }
+.gradio-container ul { padding-left: 20px; }
+.gradio-container li { margin: 6px 0; line-height: 1.6; color: #4a3f30; font-size: 15px; }
+.gradio-container blockquote {
     border-left: 3px solid #6f8a6a;
-    padding: 16px 20px; margin: 18px 0;
+    padding: 14px 18px; margin: 16px 0;
     background: rgba(111, 138, 106, 0.08);
     border-radius: 0 8px 8px 0;
     color: #2d2419; font-style: normal;
 }
-.markdown em { color: #8a7866; font-style: italic; }
-.markdown hr { border: 0; border-top: 1px solid #e6dccc; margin: 32px 0 16px; }
+.gradio-container em { color: #8a7866; font-style: italic; }
+.gradio-container hr { border: 0; border-top: 1px solid #e6dccc; margin: 28px 0 14px; }
 
 /* Hide gradio's built-in footer */
 footer { display: none !important; }
