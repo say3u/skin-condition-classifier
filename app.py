@@ -416,6 +416,9 @@ CUSTOM_CSS = """
 .text-screen { max-width: 760px; margin: 0 auto; }
 body { background: #f5efe6 !important; color: #2d2419 !important; font-family: 'Inter', system-ui, sans-serif; }
 
+/* Force light color scheme so the browser/OS dark-mode pref can't auto-darken anything. */
+html, body, .gradio-container { color-scheme: light !important; }
+
 /* ===== Header (custom HTML, scoped via .app-header) ===== */
 .app-header { text-align: center; margin-bottom: 40px; }
 .app-mark {
@@ -543,23 +546,42 @@ footer { display: none !important; }
 """
 
 theme = gr.themes.Soft(
-    primary_hue=gr.themes.Color(
-        c50="#f0f4ef", c100="#dde6db", c200="#bccdb7", c300="#9bb594",
-        c400="#7a9d72", c500="#6f8a6a", c600="#587256", c700="#475c45",
-        c800="#374737", c900="#283328", c950="#1a211a",
-    ),
-    secondary_hue=gr.themes.Color(
-        c50="#fbf6ed", c100="#f5efe6", c200="#ebe1d2", c300="#dccdb4",
-        c400="#c4b8a4", c500="#a89476", c600="#8a7866", c700="#6e5f52",
-        c800="#534740", c900="#3a322c", c950="#241f1c",
-    ),
-    neutral_hue=gr.themes.Color(
-        c50="#fbf6ed", c100="#f5efe6", c200="#ebe1d2", c300="#dccdb4",
-        c400="#c4b8a4", c500="#a89476", c600="#8a7866", c700="#4a3f30",
-        c800="#2d2419", c900="#1a140d", c950="#0d0a06",
-    ),
+    primary_hue="green",
+    secondary_hue="stone",
+    neutral_hue="stone",
     radius_size=gr.themes.sizes.radius_lg,
     font=[gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif"],
+).set(
+    # Force light cream surfaces - both light and "dark" variants set to the same warm values
+    # so Gradio can't ever fall back to a dark-brown block on us.
+    body_background_fill="#f5efe6",
+    body_background_fill_dark="#f5efe6",
+    background_fill_primary="#fbf6ed",
+    background_fill_primary_dark="#fbf6ed",
+    background_fill_secondary="#f5efe6",
+    background_fill_secondary_dark="#f5efe6",
+    block_background_fill="#fbf6ed",
+    block_background_fill_dark="#fbf6ed",
+    block_border_color="#ebe1d2",
+    block_border_color_dark="#ebe1d2",
+    block_label_background_fill="#fbf6ed",
+    block_label_background_fill_dark="#fbf6ed",
+    panel_background_fill="#fbf6ed",
+    panel_background_fill_dark="#fbf6ed",
+    body_text_color="#2d2419",
+    body_text_color_dark="#2d2419",
+    body_text_color_subdued="#8a7866",
+    body_text_color_subdued_dark="#8a7866",
+    button_primary_background_fill="#6f8a6a",
+    button_primary_background_fill_dark="#6f8a6a",
+    button_primary_background_fill_hover="#587256",
+    button_primary_background_fill_hover_dark="#587256",
+    button_primary_text_color="#fbf6ed",
+    button_primary_text_color_dark="#fbf6ed",
+    button_secondary_background_fill="transparent",
+    button_secondary_background_fill_dark="transparent",
+    button_secondary_text_color="#6f8a6a",
+    button_secondary_text_color_dark="#6f8a6a",
 )
 
 with gr.Blocks(title="Skin Condition Classifier", theme=theme, css=CUSTOM_CSS) as demo:
