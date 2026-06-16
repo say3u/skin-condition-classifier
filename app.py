@@ -376,80 +376,132 @@ def try_another():
 # ----- UI -----
 HEADER_HTML = """
 <div class="app-header">
+  <div class="app-mark">SC</div>
   <h1>Skin Condition Classifier</h1>
-  <p class="subtitle">A learning project, not a diagnostic tool.</p>
+  <p class="subtitle">A learning project &mdash; not a diagnostic tool.</p>
 </div>
 """
 
 FOOTER_HTML = """
 <div class="app-footer">
-  <a href="https://github.com/say3u/skin-condition-classifier">github.com/say3u/skin-condition-classifier</a>
+  <a href="https://github.com/say3u/skin-condition-classifier">View on GitHub</a>
 </div>
 """
 
 INTRO_MD = (
-    "Take a photo with your camera or upload one. The model returns its top three guesses "
-    "across seven dermatology categories. Not a diagnosis - see a dermatologist if you're "
-    "worried."
+    "Take a photo with your camera, or upload one. The model returns its top three guesses "
+    "across seven dermatology categories.\n\n"
+    "**This is not a diagnosis.** If you're worried about something on your skin, see a "
+    "dermatologist."
 )
 
-# Pure black-and-white CSS.
+# Refined monochrome with warmth: off-white #fafaf9, near-black #14110f, single accent #6b6b6b.
+# Soft 6px corners on cards, square corners on buttons (crisper). Subtle 1px outlines, no heavy shadows.
 CUSTOM_CSS = """
 .gradio-container {
-    max-width: 960px !important;
+    max-width: 880px !important;
     margin: 0 auto !important;
-    padding: 32px 40px 48px !important;
+    padding: 48px 32px 64px !important;
+    background: #fafaf9 !important;
+}
+body { background: #fafaf9 !important; color: #14110f !important; }
+
+/* Header */
+.app-header { text-align: center; padding-bottom: 32px; margin-bottom: 40px; border-bottom: 1px solid #e6e3df; }
+.app-mark {
+    display: inline-block; width: 44px; height: 44px; line-height: 44px;
+    background: #14110f; color: #fafaf9;
+    font-weight: 700; font-size: 13px; letter-spacing: 0.05em;
+    border-radius: 50%; margin-bottom: 16px;
+}
+.app-header h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.025em; color: #14110f; }
+.app-header .subtitle { margin: 8px 0 0; color: #6b6b6b; font-size: 14px; font-weight: 400; }
+
+/* Footer */
+.app-footer { text-align: center; padding-top: 32px; border-top: 1px solid #e6e3df; margin-top: 48px; font-size: 13px; }
+.app-footer a { color: #14110f; text-decoration: none; border-bottom: 1px solid #14110f; padding-bottom: 1px; }
+.app-footer a:hover { color: #6b6b6b; border-color: #6b6b6b; }
+
+/* Cards - soft corners, hairline border, no heavy shadow */
+.block, .gr-block, .gr-form, .form {
+    border-radius: 6px !important;
+    box-shadow: none !important;
     background: #ffffff !important;
+    border: 1px solid #e6e3df !important;
 }
 
-/* Buttons shouldn't stretch the full width of the desktop rectangle - looks weird. */
-.action-row { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
-.action-row button { min-width: 200px; max-width: 320px; flex: 1; }
-body { background: #ffffff !important; color: #000 !important; }
-
-/* Header / footer */
-.app-header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid #000; margin-bottom: 28px; }
-.app-header h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: #000; }
-.app-header .subtitle { margin: 6px 0 0; color: #555; font-size: 13px; }
-.app-footer { text-align: center; padding-top: 28px; border-top: 1px solid #000; margin-top: 40px; color: #555; font-size: 12px; }
-.app-footer a { color: #000; text-decoration: underline; }
-
-/* Block defaults: square corners, single black border, no shadow */
-.block, .gr-block, .gr-form, .form { border-radius: 0 !important; box-shadow: none !important; background: #fff !important; }
-.block { border-color: #000 !important; }
-
-/* Labels above components - small uppercase */
+/* Labels above components - small caps, less aggressive than before */
 .block-label, label > span:first-child {
-    color: #000 !important;
+    color: #6b6b6b !important;
     font-weight: 600 !important;
     text-transform: uppercase;
-    font-size: 10px !important;
-    letter-spacing: 0.1em !important;
+    font-size: 11px !important;
+    letter-spacing: 0.09em !important;
 }
 
-/* Buttons */
-button { border-radius: 0 !important; font-weight: 600 !important; transition: background 0.15s, color 0.15s; }
-.primary, button.primary { background: #000 !important; color: #fff !important; border: 1px solid #000 !important; }
-.primary:hover, button.primary:hover { background: #fff !important; color: #000 !important; }
-.secondary, button.secondary { background: #fff !important; color: #000 !important; border: 1px solid #000 !important; }
-.secondary:hover, button.secondary:hover { background: #000 !important; color: #fff !important; }
-button[disabled], button.primary[disabled] { background: #ddd !important; color: #888 !important; border-color: #ddd !important; cursor: not-allowed; }
+/* Buttons - square corners for crispness, generous padding, smooth hover */
+button {
+    border-radius: 2px !important;
+    font-weight: 600 !important;
+    padding: 12px 20px !important;
+    transition: all 0.18s ease !important;
+    letter-spacing: 0.01em !important;
+}
+.primary, button.primary {
+    background: #14110f !important; color: #fafaf9 !important;
+    border: 1px solid #14110f !important;
+}
+.primary:hover, button.primary:hover {
+    background: #2a2622 !important; border-color: #2a2622 !important;
+    transform: translateY(-1px);
+}
+.secondary, button.secondary {
+    background: #ffffff !important; color: #14110f !important;
+    border: 1px solid #c9c6c1 !important;
+}
+.secondary:hover, button.secondary:hover {
+    background: #14110f !important; color: #fafaf9 !important; border-color: #14110f !important;
+}
+button[disabled], button.primary[disabled] {
+    background: #ececea !important; color: #b0aca8 !important;
+    border-color: #ececea !important; cursor: not-allowed;
+    transform: none !important;
+}
 
-/* Confidence bars: solid black */
-.label-wrap .bar, .output-class .bar { background: #000 !important; }
+/* Action button row */
+.action-row { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
+.action-row button { min-width: 180px; max-width: 280px; flex: 1; }
 
-/* Markdown typography */
-.markdown h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; color: #000; }
-.markdown h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; margin: 24px 0 10px; color: #000; border-bottom: 1px solid #000; padding-bottom: 6px; }
-.markdown h3, .markdown h4 { font-size: 14px; font-weight: 600; margin: 16px 0 6px; color: #000; }
-.markdown p { line-height: 1.55; color: #1a1a1a; }
-.markdown ul { padding-left: 18px; }
-.markdown li { margin: 4px 0; line-height: 1.45; }
-.markdown blockquote { border-left: 3px solid #000; padding: 10px 14px; margin: 14px 0; background: #f5f5f5; color: #000; }
-.markdown em { color: #555; }
-.markdown hr { border: 0; border-top: 1px solid #000; margin: 24px 0 12px; }
+/* Confidence bars - charcoal, taller, soft corners */
+.label-wrap .bar, .output-class .bar {
+    background: #14110f !important;
+    border-radius: 2px !important;
+}
 
-/* Hide gradio's own footer */
+/* Markdown typography - generous leading, warm dark text */
+.markdown h1 {
+    font-size: 26px; font-weight: 700; letter-spacing: -0.02em;
+    margin: 0 0 6px; color: #14110f;
+}
+.markdown h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
+    margin: 28px 0 12px; color: #6b6b6b; font-weight: 700;
+}
+.markdown h3, .markdown h4 {
+    font-size: 15px; font-weight: 600; margin: 18px 0 6px; color: #14110f;
+}
+.markdown p { line-height: 1.65; color: #2a2622; margin: 8px 0; }
+.markdown ul { padding-left: 20px; }
+.markdown li { margin: 6px 0; line-height: 1.55; color: #2a2622; }
+.markdown blockquote {
+    border-left: 3px solid #14110f; padding: 14px 18px; margin: 16px 0;
+    background: #f3f1ed; border-radius: 0 4px 4px 0;
+    color: #14110f; font-style: normal;
+}
+.markdown em { color: #6b6b6b; font-style: normal; }
+.markdown hr { border: 0; border-top: 1px solid #e6e3df; margin: 28px 0 14px; }
+
+/* Hide gradio's built-in footer */
 footer { display: none !important; }
 """
 
