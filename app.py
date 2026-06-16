@@ -458,7 +458,7 @@ theme = gr.themes.Monochrome(
     font=[gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif"],
 )
 
-with gr.Blocks(title="Skin Condition Classifier") as demo:
+with gr.Blocks(title="Skin Condition Classifier", theme=theme, css=CUSTOM_CSS) as demo:
     gr.HTML(HEADER_HTML)
 
     # State carried across screens
@@ -540,12 +540,11 @@ with gr.Blocks(title="Skin Condition Classifier") as demo:
         )
 
 if __name__ == "__main__":
-    # share=True gives a public *.gradio.live URL that lasts 72 hours.
-    # The URL still tunnels through this machine, so this script has to keep running.
-    demo.launch(
-        server_name="127.0.0.1",
-        share=True,
-        inbrowser=True,
-        theme=theme,
-        css=CUSTOM_CSS,
-    )
+    import os
+
+    # HF Spaces sets SPACE_ID; locally it's unset.
+    if os.environ.get("SPACE_ID"):
+        # HF binds and routes for us; don't pass server_name or share.
+        demo.launch()
+    else:
+        demo.launch(server_name="127.0.0.1", inbrowser=True)
