@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Skin Condition Classifier</title>
+  <meta name="description" content="An educational image classifier for skin lesions. Not a diagnostic tool." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-name">Skin Classifier</span>
+    </div>
+    <a class="site-link" href="https://github.com/say3u/skin-condition-classifier" target="_blank" rel="noopener">GitHub</a>
+  </header>
+
+  <main class="container">
+
+    <!-- ============ Screen 1: Capture ============ -->
+    <section class="screen active" data-screen="capture">
+      <div class="hero">
+        <h1 class="hero-title">A clearer look<br/>at what's on your skin.</h1>
+        <p class="hero-sub">
+          Take a photo or upload one. The model returns its top three guesses across
+          seven dermatology categories.
+        </p>
+        <p class="hero-disclaimer">
+          <em>This is not a diagnosis. If you're worried, see a dermatologist.</em>
+        </p>
+      </div>
+
+      <div class="capture-card">
+        <div class="capture-stage">
+          <video id="camera-video" autoplay playsinline muted></video>
+          <img id="preview-image" alt="" />
+          <div id="capture-placeholder" class="capture-placeholder">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            <p>Camera access or photo upload</p>
+          </div>
+        </div>
+
+        <canvas id="capture-canvas" hidden></canvas>
+
+        <div class="capture-controls">
+          <button class="btn btn-secondary" id="btn-camera">Use camera</button>
+          <button class="btn btn-secondary" id="btn-upload">Upload photo</button>
+          <input type="file" id="file-input" accept="image/*" hidden />
+        </div>
+
+        <div class="capture-actions">
+          <button class="btn btn-primary" id="btn-classify" disabled>Classify</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ Screen 2: Results ============ -->
+    <section class="screen" data-screen="results">
+      <div class="results-thumb-wrap">
+        <img id="results-thumb" alt="Submitted photo" />
+      </div>
+
+      <div id="top-guess" class="top-guess"></div>
+
+      <div class="results-list" id="results-list"></div>
+
+      <div id="results-warning" class="warning" hidden></div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-info">More information</button>
+        <button class="btn btn-secondary" id="btn-retry-1">Try another photo</button>
+      </div>
+    </section>
+
+    <!-- ============ Screen 3: Info ============ -->
+    <section class="screen" data-screen="info">
+      <article id="info-article" class="info-article"></article>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-back">Back to results</button>
+        <button class="btn btn-secondary" id="btn-retry-2">Try another photo</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>Built as a learning project. <a href="https://github.com/say3u/skin-condition-classifier" target="_blank" rel="noopener">Source &amp; limitations on GitHub.</a></p>
+  </footer>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

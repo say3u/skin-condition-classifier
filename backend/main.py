@@ -1,0 +1,84 @@
+"""
+FastAPI service for the skin condition classifier.
+
+Two responsibilities:
+  1. Expose POST /api/predict - accepts an image, returns top-3 + low_confidence flag.
+  2. Serve the static frontend at / (index.html + style.css + app.js).
+
+Run locally:
+    uvicorn backend.main:app --reload --port 7860
+
+In production (Docker / HF Spaces): the Dockerfile runs uvicorn on 0.0.0.0:7860.
+"""
+
+import io
+from pathlib import Path
+
+from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from PIL import Image, UnidentifiedImageError
+
+from backend.model import load_model, predict_top3
+
+ROOT = Path(__file__).resolve().parent.parent
+FRONTEND_DIR = ROOT / "frontend"
+MODEL_PATH = ROOT / "skin_classifier_efficientnet_b0.pt"
+
+app = FastAPI(
+    title="Skin Condition Classifier API",
+    description="Educational only — not a diagnostic tool.",
+    version="1.0.0",
+)
+
+# Load the model once at startup, not per request.
+bundle = load_model(MODEL_PATH)
+
+
+@app.post("/api/predict")
+async def predict(file: UploadFile = File(...)):
+    """Accept an image, return the top-3 classification."""
+    if file.content_type and not file.content_type.startswith("image/"):
+        raise HTTPException(400, f"Expected an image, got {file.content_type}.")
+
+    raw = await file.read()
+    if not raw:
+        raise HTTPException(400, "Empty upload.")
+    if len(raw) > 12 * 1024 * 1024:
+        raise HTTPException(413, "Image too large. Keep it under 12 MB.")
+
+    try:
+        image = Image.open(io.BytesIO(raw))
+        image.verify()
+        image = Image.open(io.BytesIO(raw))   # re-open after verify
+    except (UnidentifiedImageError, Exception):
+        raise HTTPException(400, "Could not read the image.")
+
+    return predict_top3(bundle, image)
+
+
+@app.get("/api/health")
+async def health():
+    return {"status": "ok", "classes": bundle["classes"]}
+
+
+# ----- Static frontend -----
+# Serve index.html at "/" and the other assets at their bare filenames.
+@app.get("/")
+async def index():
+    return FileResponse(FRONTEND_DIR / "index.html")
+
+
+# Mount /static for any other assets we add later (images, fonts, etc.)
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+
+# Serve top-level frontend files (style.css, app.js, etc.) at their bare paths.
+@app.get("/{filename:path}")
+async def static_root(filename: str):
+    if filename.startswith("api/"):
+        raise HTTPException(404)
+    candidate = FRONTEND_DIR / filename
+    if candidate.is_file():
+        return FileResponse(candidate)
+    raise HTTPException(404)

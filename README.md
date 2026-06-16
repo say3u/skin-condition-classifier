@@ -3,9 +3,8 @@ title: Skin Condition Classifier
 emoji: 🩺
 colorFrom: gray
 colorTo: gray
-sdk: gradio
-sdk_version: 5.31.0
-app_file: app.py
+sdk: docker
+app_port: 7860
 pinned: false
 license: mit
 short_description: Educational skin-lesion classifier (HAM10000 + EfficientNet)
