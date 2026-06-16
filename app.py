@@ -404,12 +404,16 @@ CUSTOM_CSS = """
 
 /* ===== Page ===== */
 .gradio-container {
-    max-width: 720px !important;
+    max-width: 1400px !important;
     margin: 0 auto !important;
-    padding: 56px 32px 72px !important;
+    padding: 56px 64px 72px !important;
     background: #f5efe6 !important;
     font-family: 'Inter', system-ui, sans-serif !important;
 }
+
+/* Center text-heavy screens (results, info) at a comfortable reading width within the
+   wider container. The capture screen uses its own two-column layout below. */
+.text-screen { max-width: 760px; margin: 0 auto; }
 body { background: #f5efe6 !important; color: #2d2419 !important; font-family: 'Inter', system-ui, sans-serif; }
 
 /* ===== Header (custom HTML, scoped via .app-header) ===== */
@@ -564,36 +568,38 @@ with gr.Blocks(title="Skin Condition Classifier", theme=theme, css=CUSTOM_CSS) a
     # State carried across screens
     top1_state = gr.State(None)
 
-    # ============ Screen 1 — Capture ============
+    # ============ Screen 1 — Capture (two-column on wide screens) ============
     with gr.Group(visible=True) as capture_screen:
-        gr.Markdown(INTRO_MD)
-        inp = gr.Image(
-            type="pil",
-            sources=["webcam", "upload", "clipboard"],
-            height=420,
-            show_label=False,
-        )
-        with gr.Row(elem_classes="action-row"):
-            classify_btn = gr.Button("Classify", variant="primary", size="lg")
+        with gr.Row(equal_height=False):
+            with gr.Column(scale=3, min_width=420):
+                inp = gr.Image(
+                    type="pil",
+                    sources=["webcam", "upload", "clipboard"],
+                    height=520,
+                    show_label=False,
+                )
+            with gr.Column(scale=2, min_width=300):
+                gr.Markdown(INTRO_MD)
+                classify_btn = gr.Button("Classify", variant="primary", size="lg")
 
-        example_files = sorted(
-            [str(p) for p in EXAMPLES_DIR.glob("*.jpg")] +
-            [str(p) for p in EXAMPLES_DIR.glob("*.png")]
-        )
-        if example_files:
-            gr.Examples(
-                examples=[[p] for p in example_files],
-                inputs=[inp],
-                label="Or try an example",
-                examples_per_page=6,
-            )
+                example_files = sorted(
+                    [str(p) for p in EXAMPLES_DIR.glob("*.jpg")] +
+                    [str(p) for p in EXAMPLES_DIR.glob("*.png")]
+                )
+                if example_files:
+                    gr.Examples(
+                        examples=[[p] for p in example_files],
+                        inputs=[inp],
+                        label="Or try an example",
+                        examples_per_page=4,
+                    )
 
-    # ============ Screen 2 — Results ============
-    with gr.Group(visible=False) as results_screen:
+    # ============ Screen 2 — Results (constrained reading width) ============
+    with gr.Group(visible=False, elem_classes="text-screen") as results_screen:
         results_thumb = gr.Image(
             show_label=False,
             interactive=False,
-            height=200,
+            height=240,
             container=False,
         )
         out_label = gr.Label(num_top_classes=3, show_label=False)
@@ -602,8 +608,8 @@ with gr.Blocks(title="Skin Condition Classifier", theme=theme, css=CUSTOM_CSS) a
             info_btn = gr.Button("More information", variant="primary")
             retry_btn = gr.Button("Try another photo", variant="secondary")
 
-    # ============ Screen 3 — Info ============
-    with gr.Group(visible=False) as info_screen:
+    # ============ Screen 3 — Info (constrained reading width) ============
+    with gr.Group(visible=False, elem_classes="text-screen") as info_screen:
         info_md = gr.Markdown()
         with gr.Row(elem_classes="action-row"):
             back_btn = gr.Button("Back to results", variant="primary")
