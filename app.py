@@ -376,7 +376,7 @@ def try_another():
 # ----- UI -----
 HEADER_HTML = """
 <div class="app-header">
-  <div class="app-mark">SC</div>
+  <div class="app-mark"></div>
   <h1>Skin Condition Classifier</h1>
   <p class="subtitle">A learning project &mdash; not a diagnostic tool.</p>
 </div>
@@ -391,122 +391,169 @@ FOOTER_HTML = """
 INTRO_MD = (
     "Take a photo with your camera, or upload one. The model returns its top three guesses "
     "across seven dermatology categories.\n\n"
-    "**This is not a diagnosis.** If you're worried about something on your skin, see a "
-    "dermatologist."
+    "*This is not a diagnosis. If you're worried about something on your skin, please see a "
+    "dermatologist.*"
 )
 
-# Refined monochrome with warmth: off-white #fafaf9, near-black #14110f, single accent #6b6b6b.
-# Soft 6px corners on cards, square corners on buttons (crisper). Subtle 1px outlines, no heavy shadows.
+# Skincare-brand aesthetic: warm cream + sage accent + serif headline.
+# Palette: bg #f5efe6 (warm cream), text #2d2419 (deep walnut), accent #6f8a6a (muted sage),
+# secondary text #8a7866 (warm taupe), borders #e6dccc (sand).
 CUSTOM_CSS = """
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap');
+
 .gradio-container {
-    max-width: 880px !important;
+    max-width: 860px !important;
     margin: 0 auto !important;
-    padding: 48px 32px 64px !important;
-    background: #fafaf9 !important;
+    padding: 56px 36px 72px !important;
+    background: #f5efe6 !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
 }
-body { background: #fafaf9 !important; color: #14110f !important; }
+body { background: #f5efe6 !important; color: #2d2419 !important; }
 
-/* Header */
-.app-header { text-align: center; padding-bottom: 32px; margin-bottom: 40px; border-bottom: 1px solid #e6e3df; }
+/* ===== Header ===== */
+.app-header {
+    text-align: center;
+    padding-bottom: 36px; margin-bottom: 44px;
+    border-bottom: 1px solid #e6dccc;
+}
 .app-mark {
-    display: inline-block; width: 44px; height: 44px; line-height: 44px;
-    background: #14110f; color: #fafaf9;
-    font-weight: 700; font-size: 13px; letter-spacing: 0.05em;
-    border-radius: 50%; margin-bottom: 16px;
+    display: inline-block; width: 14px; height: 14px;
+    background: #6f8a6a; border-radius: 50%;
+    margin-bottom: 22px;
 }
-.app-header h1 { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.025em; color: #14110f; }
-.app-header .subtitle { margin: 8px 0 0; color: #6b6b6b; font-size: 14px; font-weight: 400; }
+.app-header h1 {
+    margin: 0;
+    font-family: 'DM Serif Display', Georgia, serif !important;
+    font-size: 38px; font-weight: 400; letter-spacing: -0.01em;
+    color: #2d2419; line-height: 1.1;
+}
+.app-header .subtitle {
+    margin: 12px 0 0; color: #8a7866; font-size: 14px; font-weight: 400;
+    letter-spacing: 0.02em;
+}
 
-/* Footer */
-.app-footer { text-align: center; padding-top: 32px; border-top: 1px solid #e6e3df; margin-top: 48px; font-size: 13px; }
-.app-footer a { color: #14110f; text-decoration: none; border-bottom: 1px solid #14110f; padding-bottom: 1px; }
-.app-footer a:hover { color: #6b6b6b; border-color: #6b6b6b; }
+/* ===== Footer ===== */
+.app-footer {
+    text-align: center; padding-top: 36px; margin-top: 56px;
+    border-top: 1px solid #e6dccc;
+    font-size: 12px; color: #8a7866;
+    letter-spacing: 0.04em; text-transform: uppercase;
+}
+.app-footer a {
+    color: #6f8a6a; text-decoration: none; font-weight: 600;
+    border-bottom: 1px solid transparent; padding-bottom: 2px;
+    transition: border-color 0.2s;
+}
+.app-footer a:hover { border-bottom-color: #6f8a6a; }
 
-/* Cards - soft corners, hairline border, no heavy shadow */
+/* ===== Cards ===== */
 .block, .gr-block, .gr-form, .form {
-    border-radius: 6px !important;
-    box-shadow: none !important;
-    background: #ffffff !important;
-    border: 1px solid #e6e3df !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 2px rgba(45, 36, 25, 0.04), 0 4px 16px rgba(45, 36, 25, 0.04) !important;
+    background: #fbf6ed !important;
+    border: 1px solid #ebe1d2 !important;
 }
 
-/* Labels above components - small caps, less aggressive than before */
+/* Component labels - small caps, taupe */
 .block-label, label > span:first-child {
-    color: #6b6b6b !important;
+    color: #8a7866 !important;
     font-weight: 600 !important;
     text-transform: uppercase;
-    font-size: 11px !important;
-    letter-spacing: 0.09em !important;
+    font-size: 10px !important;
+    letter-spacing: 0.14em !important;
 }
 
-/* Buttons - square corners for crispness, generous padding, smooth hover */
+/* ===== Buttons - rounded, sage primary ===== */
 button {
-    border-radius: 2px !important;
+    border-radius: 10px !important;
     font-weight: 600 !important;
-    padding: 12px 20px !important;
-    transition: all 0.18s ease !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+    padding: 13px 26px !important;
+    transition: all 0.22s ease !important;
     letter-spacing: 0.01em !important;
+    font-size: 14px !important;
 }
 .primary, button.primary {
-    background: #14110f !important; color: #fafaf9 !important;
-    border: 1px solid #14110f !important;
+    background: #6f8a6a !important; color: #fbf6ed !important;
+    border: 1px solid #6f8a6a !important;
+    box-shadow: 0 1px 3px rgba(111, 138, 106, 0.25);
 }
 .primary:hover, button.primary:hover {
-    background: #2a2622 !important; border-color: #2a2622 !important;
+    background: #587256 !important; border-color: #587256 !important;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(88, 114, 86, 0.3);
 }
 .secondary, button.secondary {
-    background: #ffffff !important; color: #14110f !important;
-    border: 1px solid #c9c6c1 !important;
+    background: transparent !important; color: #6f8a6a !important;
+    border: 1px solid #c4b8a4 !important;
 }
 .secondary:hover, button.secondary:hover {
-    background: #14110f !important; color: #fafaf9 !important; border-color: #14110f !important;
+    background: #ebe1d2 !important; color: #2d2419 !important;
+    border-color: #c4b8a4 !important;
 }
 button[disabled], button.primary[disabled] {
-    background: #ececea !important; color: #b0aca8 !important;
-    border-color: #ececea !important; cursor: not-allowed;
-    transform: none !important;
+    background: #ebe1d2 !important; color: #b8a98f !important;
+    border-color: #ebe1d2 !important; cursor: not-allowed;
+    transform: none !important; box-shadow: none !important;
 }
 
 /* Action button row */
-.action-row { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
+.action-row { display: flex; gap: 14px; justify-content: center; margin-top: 24px; }
 .action-row button { min-width: 180px; max-width: 280px; flex: 1; }
 
-/* Confidence bars - charcoal, taller, soft corners */
+/* ===== Confidence bars - sage ===== */
 .label-wrap .bar, .output-class .bar {
-    background: #14110f !important;
-    border-radius: 2px !important;
+    background: linear-gradient(90deg, #6f8a6a 0%, #8aa885 100%) !important;
+    border-radius: 4px !important;
 }
 
-/* Markdown typography - generous leading, warm dark text */
+/* ===== Markdown typography - serif headline + warm Inter body ===== */
 .markdown h1 {
-    font-size: 26px; font-weight: 700; letter-spacing: -0.02em;
-    margin: 0 0 6px; color: #14110f;
+    font-family: 'DM Serif Display', Georgia, serif !important;
+    font-size: 32px; font-weight: 400; letter-spacing: -0.01em;
+    margin: 0 0 8px; color: #2d2419; line-height: 1.2;
 }
 .markdown h2 {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em;
-    margin: 28px 0 12px; color: #6b6b6b; font-weight: 700;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em;
+    margin: 32px 0 14px; color: #6f8a6a; font-weight: 700;
 }
 .markdown h3, .markdown h4 {
-    font-size: 15px; font-weight: 600; margin: 18px 0 6px; color: #14110f;
+    font-size: 16px; font-weight: 600; margin: 20px 0 8px; color: #2d2419;
 }
-.markdown p { line-height: 1.65; color: #2a2622; margin: 8px 0; }
-.markdown ul { padding-left: 20px; }
-.markdown li { margin: 6px 0; line-height: 1.55; color: #2a2622; }
+.markdown p { line-height: 1.7; color: #4a3f30; margin: 10px 0; font-size: 15px; }
+.markdown ul { padding-left: 22px; }
+.markdown li { margin: 8px 0; line-height: 1.6; color: #4a3f30; font-size: 15px; }
 .markdown blockquote {
-    border-left: 3px solid #14110f; padding: 14px 18px; margin: 16px 0;
-    background: #f3f1ed; border-radius: 0 4px 4px 0;
-    color: #14110f; font-style: normal;
+    border-left: 3px solid #6f8a6a;
+    padding: 16px 20px; margin: 18px 0;
+    background: rgba(111, 138, 106, 0.08);
+    border-radius: 0 8px 8px 0;
+    color: #2d2419; font-style: normal;
 }
-.markdown em { color: #6b6b6b; font-style: normal; }
-.markdown hr { border: 0; border-top: 1px solid #e6e3df; margin: 28px 0 14px; }
+.markdown em { color: #8a7866; font-style: italic; }
+.markdown hr { border: 0; border-top: 1px solid #e6dccc; margin: 32px 0 16px; }
 
 /* Hide gradio's built-in footer */
 footer { display: none !important; }
 """
 
-theme = gr.themes.Monochrome(
-    radius_size=gr.themes.sizes.radius_none,
+theme = gr.themes.Soft(
+    primary_hue=gr.themes.Color(
+        c50="#f0f4ef", c100="#dde6db", c200="#bccdb7", c300="#9bb594",
+        c400="#7a9d72", c500="#6f8a6a", c600="#587256", c700="#475c45",
+        c800="#374737", c900="#283328", c950="#1a211a",
+    ),
+    secondary_hue=gr.themes.Color(
+        c50="#fbf6ed", c100="#f5efe6", c200="#ebe1d2", c300="#dccdb4",
+        c400="#c4b8a4", c500="#a89476", c600="#8a7866", c700="#6e5f52",
+        c800="#534740", c900="#3a322c", c950="#241f1c",
+    ),
+    neutral_hue=gr.themes.Color(
+        c50="#fbf6ed", c100="#f5efe6", c200="#ebe1d2", c300="#dccdb4",
+        c400="#c4b8a4", c500="#a89476", c600="#8a7866", c700="#4a3f30",
+        c800="#2d2419", c900="#1a140d", c950="#0d0a06",
+    ),
+    radius_size=gr.themes.sizes.radius_lg,
     font=[gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif"],
 )
 
