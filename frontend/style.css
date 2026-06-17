@@ -405,6 +405,35 @@ button { font-family: inherit; }
 }
 .warning strong { color: var(--rust); }
 
+/* Photo tips card (shown on low-confidence "couldn't identify" results) */
+.tips {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  margin-bottom: 32px;
+  box-shadow: var(--shadow);
+}
+.tips h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: var(--sage-deep);
+  margin: 0 0 18px;
+}
+.tips ul { margin: 0; padding-left: 22px; }
+.tips li {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  margin: 12px 0;
+}
+.tips li strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .action-row {
   display: flex;
   gap: 12px;

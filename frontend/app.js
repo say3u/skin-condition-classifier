@@ -271,59 +271,58 @@ function renderResults(data) {
   const thumb = $("#results-thumb");
   thumb.src = URL.createObjectURL(capturedBlob);
 
-  const top1 = data.top_3[0];
-  const isLow = data.low_confidence;
-
-  const topGuess = $("#top-guess");
-  if (isLow) {
-    topGuess.innerHTML = `
-      <div class="label">Low confidence</div>
-      <h2 class="name">Not sure about this one</h2>
-      <p class="meta">
-        The top guess is only ${(top1.probability * 100).toFixed(0)}% sure &mdash;
-        below the ${(data.low_confidence_threshold * 100).toFixed(0)}% threshold this app trusts.
-      </p>
-    `;
+  if (data.low_confidence) {
+    renderCouldntIdentify(data);
   } else {
-    topGuess.innerHTML = `
-      <div class="label">Top guess</div>
-      <h2 class="name">${escapeHtml(top1.name)}</h2>
-      <p class="meta">
-        <span class="tag ${top1.malignancy.replace(/\s/g, "-")}">${escapeHtml(top1.malignancy)}</span>
-        ${(top1.probability * 100).toFixed(0)}% confidence
-      </p>
-    `;
+    renderConfidentResult(data);
   }
+}
+
+// Confident path - show top-3 bars + warning if malignant
+function renderConfidentResult(data) {
+  const top1 = data.top_3[0];
+
+  // Show the More Info / Try Another row in normal layout (not low-conf)
+  $("#btn-info").style.display = "";
+  $("#btn-info").disabled = false;
+  $("#btn-info").textContent = "More information";
+  $("#btn-retry-1").classList.remove("btn-primary");
+  $("#btn-retry-1").classList.add("btn-secondary");
+
+  $("#top-guess").innerHTML = `
+    <div class="label">Top guess</div>
+    <h2 class="name">${escapeHtml(top1.name)}</h2>
+    <p class="meta">
+      <span class="tag ${top1.malignancy.replace(/\s/g, "-")}">${escapeHtml(top1.malignancy)}</span>
+      ${(top1.probability * 100).toFixed(0)}% confidence
+    </p>
+  `;
 
   const list = $("#results-list");
-  list.innerHTML = data.top_3.map((g, i) => `
+  list.innerHTML = data.top_3.map(g => `
     <div class="guess-row">
       <div class="info">
         <div class="name-row">
           <span class="name">${escapeHtml(g.name)}</span>
           <span class="code">${escapeHtml(g.code)} &middot; ${escapeHtml(g.malignancy)}</span>
         </div>
-        <div class="bar-track">
-          <div class="bar-fill" style="width: 0%"></div>
-        </div>
+        <div class="bar-track"><div class="bar-fill" style="width: 0%"></div></div>
       </div>
       <div class="pct">${(g.probability * 100).toFixed(0)}%</div>
     </div>
   `).join("");
 
-  // Animate the bars in after the next frame
   requestAnimationFrame(() => {
     $$(".bar-fill").forEach((bar, i) => {
       bar.style.width = (data.top_3[i].probability * 100).toFixed(1) + "%";
     });
   });
 
-  // Warning if any top-3 result is malignant or pre-malignant
   const warning = $("#results-warning");
   const concerning = data.top_3.some(g =>
     g.malignancy === "cancerous" || g.malignancy === "pre-cancerous"
   );
-  if (concerning && !isLow) {
+  if (concerning) {
     warning.innerHTML = `
       <div>
         <strong>Heads up.</strong>
@@ -332,24 +331,42 @@ function renderResults(data) {
       </div>
     `;
     warning.hidden = false;
-  } else if (isLow) {
-    warning.innerHTML = `
-      <div>
-        The model only knows seven categories. Conditions like acne, eczema, rosacea, and
-        keratosis pilaris aren't in the training set, and the model has no "not skin" class.
-        Treat the guesses below as low trust.
-      </div>
-    `;
-    warning.hidden = false;
   } else {
     warning.hidden = true;
   }
+}
 
-  // Enable / disable the "More information" button based on confidence
-  btnInfo.disabled = isLow;
-  btnInfo.textContent = isLow
-    ? "More information unavailable"
-    : "More information";
+// Low-confidence path - no fake diagnosis, show tips for a better photo
+function renderCouldntIdentify(data) {
+  // Hide info button, promote "Try another photo" to primary
+  $("#btn-info").style.display = "none";
+  $("#btn-retry-1").classList.remove("btn-secondary");
+  $("#btn-retry-1").classList.add("btn-primary");
+  $("#btn-retry-1").textContent = "Take another photo";
+
+  $("#top-guess").innerHTML = `
+    <div class="label">No confident match</div>
+    <h2 class="name">Couldn't identify this photo</h2>
+    <p class="meta">
+      The model isn't confident this matches any of the seven conditions it was trained on.
+      That's most often a photo issue, not a skin issue.
+    </p>
+  `;
+
+  $("#results-list").innerHTML = `
+    <div class="tips">
+      <h3>For a better classification, try this</h3>
+      <ul>
+        <li><strong>Use bright, even light.</strong> Natural daylight near a window works best. Avoid overhead shadows.</li>
+        <li><strong>Get closer.</strong> The skin spot should fill most of the frame &mdash; not be a tiny dot.</li>
+        <li><strong>Hold steady and focus.</strong> Blurry photos are the most common cause of low confidence.</li>
+        <li><strong>No glare or wet skin.</strong> Reflective spots throw the model off.</li>
+        <li><strong>Make sure it's a skin lesion.</strong> The model only knows seven dermatology categories &mdash; it can't classify acne, eczema, rosacea, or anything that isn't skin.</li>
+      </ul>
+    </div>
+  `;
+
+  $("#results-warning").hidden = true;
 }
 
 // ---------- Info screen ----------
@@ -399,6 +416,14 @@ function resetCapture() {
   btnCamera.textContent = "Use camera";
   btnClassify.disabled = true;
   fileInput.value = "";
+
+  // Reset results-screen button state in case the previous result was low-confidence
+  btnInfo.style.display = "";
+  btnInfo.disabled = false;
+  btnRetry1.classList.remove("btn-primary");
+  btnRetry1.classList.add("btn-secondary");
+  btnRetry1.textContent = "Try another photo";
+
   showScreen("capture");
 }
 btnRetry1.addEventListener("click", resetCapture);
