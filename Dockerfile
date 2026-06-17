@@ -4,9 +4,11 @@
 
 FROM python:3.11-slim
 
-# System libs for Pillow / OpenCV-style image decoding
+# System libs for Pillow / OpenCV-style image decoding.
+# libgl1-mesa-glx was renamed to libgl1 in Debian 13 (Trixie), which python:3.11-slim
+# now uses. Keep both names? No - just use libgl1, it's the right package on modern Debian.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libgl1-mesa-glx \
+        libgl1 \
         libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
