@@ -4,23 +4,24 @@
    ============================================================ */
 
 :root {
-  /* Color */
-  --cream:        #f7f2e9;
-  --cream-deep:   #ede5d4;
-  --paper:        #ffffff;
-  --ink:          #1a1410;
-  --ink-soft:     #4a3f33;
-  --ink-mute:     #8b7d6c;
-  --line:         #e6dccc;
-  --line-soft:    #efe7d8;
-  --sage:         #6f8a6a;
-  --sage-deep:    #557255;
+  /* Color - warm cream background, Tailwind-gray text for premium clinical-but-inviting feel */
+  --cream:        #FAF7F2;   /* warm off-white background */
+  --cream-deep:   #F3EEE4;   /* slightly deeper cream for hover / disabled */
+  --paper:        #FFFFFF;   /* cards */
+  --ink:          #111827;   /* gray-900, primary text */
+  --ink-soft:     #374151;   /* gray-700, body text */
+  --ink-mute:     #6B7280;   /* gray-500, disclaimers and muted */
+  --ink-fade:     #9CA3AF;   /* gray-400 */
+  --line:         #E5E7EB;   /* gray-200, borders */
+  --line-soft:    #F3F4F6;   /* gray-100, subtle dividers */
+  --sage:         #6f8a6a;   /* accent */
+  --sage-deep:    #557255;   /* accent hover */
   --sage-tint:    rgba(111, 138, 106, 0.10);
-  --rust:         #b85c4a;
+  --rust:         #b85c4a;   /* danger / malignant warnings */
   --rust-tint:    rgba(184, 92, 74, 0.08);
 
-  /* Type */
-  --font-display: "DM Serif Display", "Times New Roman", Georgia, serif;
+  /* Type - Playfair for display (high-contrast editorial serif), Inter for body */
+  --font-display: "Playfair Display", "Times New Roman", Georgia, serif;
   --font-body:    "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   /* Layout */
@@ -136,10 +137,10 @@ button { font-family: inherit; }
 
 .hero-title {
   font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(40px, 5.5vw, 60px);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  font-size: clamp(42px, 5.5vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
   margin: 0 0 24px;
   color: var(--ink);
 }
