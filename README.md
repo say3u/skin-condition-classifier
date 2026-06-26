@@ -10,16 +10,66 @@ license: mit
 short_description: Educational skin-lesion classifier (HAM10000 + EfficientNet)
 ---
 
-# Skin Condition Classifier (Educational)
+# Skin Condition Classifier
 
-A personal project I'm building to learn computer vision properly: take a photo of a skin
-lesion and get the **top guesses** across 7 dermatological categories. The model comes first
-(this repo), then a **desktop app**, and eventually a **phone app**.
+A web app that takes a photo of a skin lesion and returns its top guesses across seven
+dermatology categories &mdash; built as a personal project to learn computer vision, model
+deployment, and what it takes to build responsible health-adjacent ML tools.
 
-> **This is an educational / triage demo — NOT a medical device and NOT a diagnosis.**
-> It produces a statistical best-guess for learning purposes only. It must never be used
-> to make real health decisions. If you are worried about a skin lesion, see a licensed
-> dermatologist. See [`docs/ETHICS.md`](docs/ETHICS.md) for the full list of limitations.
+**Live demo:** [huggingface.co/spaces/sayeu/skin-condition-classifier](https://huggingface.co/spaces/sayeu/skin-condition-classifier)
+
+> Educational only. Not a medical device, not a diagnosis. If something on your skin worries
+> you, see a dermatologist. See [`docs/ETHICS.md`](docs/ETHICS.md) for the full limitations write-up.
+
+## What it does
+
+Take a photo with your webcam or upload one. The model returns three possible matches with
+confidence scores. If the photo is too unclear or doesn't match any of the seven trained
+categories, the UI says &ldquo;couldn't identify&rdquo; and gives concrete photo-quality tips instead of
+faking a guess. When a result includes a potentially malignant category, the UI surfaces a
+clear warning and points the user at a real dermatologist.
+
+## What I built
+
+- **Trained an EfficientNet-B0** with transfer learning on the [HAM10000](https://www.nature.com/articles/sdata2018161)
+  dermatoscopy dataset (~10k images, 7 lesion classes). Used class-weighted loss to handle
+  the dataset's heavy imbalance (one class is ~67% of the data) and split by lesion (not by
+  image) to prevent data leakage.
+- **Reported metrics that matter for health data** &mdash; per-class precision/recall, macro-F1,
+  confusion matrix &mdash; instead of leaning on raw accuracy on an imbalanced dataset.
+- **Wrote a FastAPI backend** that exposes a `POST /api/predict` endpoint wrapping the model.
+- **Hand-built the frontend** &mdash; vanilla HTML, CSS, and JavaScript, no framework. Webcam
+  capture via `getUserMedia`, three-screen flow (capture &rarr; results &rarr; detail), Playfair
+  Display + Inter typography, fully responsive.
+- **Deployed via Docker** to Hugging Face Spaces &mdash; one container serving both the API
+  and the static frontend.
+
+## Results (HAM10000, EfficientNet-B0, 20 epochs on Colab T4)
+
+| Metric | Value |
+|---|---|
+| Best validation macro-F1 | **0.730** |
+| Melanoma (`mel`) recall | **67.9%** |
+| Training images | ~10,000 |
+| Classes | 7 |
+
+A 67.9% melanoma recall means the model misses roughly 1 in 3 melanomas, which is **why the
+whole UI is built around honest framing** &mdash; top-3 guesses instead of one, the &ldquo;couldn't
+identify&rdquo; path, the malignancy warning callout, and the explicit disclaimer. The hard part
+of health ML isn't training a model &mdash; it's deciding what to do when the model is wrong.
+
+## Tech stack
+
+PyTorch &middot; torchvision &middot; FastAPI &middot; Docker &middot; HTML / CSS / JavaScript &middot; Hugging Face Spaces
+
+## Roadmap
+
+- [x] HAM10000 classifier trained, deployed live
+- [x] Real frontend with three-screen flow + honest low-confidence path
+- [ ] Fitzpatrick17k second model + per-skin-type fairness analysis ([notebook started](notebooks/02_train_fitzpatrick17k_efficientnet.ipynb))
+- [ ] Grad-CAM heatmaps on the results screen (so you can see where the model looked)
+- [ ] Calibrated confidence via temperature scaling
+- [ ] Photo-quality preflight (Claude vision API)
 
 ---
 
