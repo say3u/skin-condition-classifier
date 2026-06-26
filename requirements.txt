@@ -9,6 +9,10 @@ torchvision>=0.16
 Pillow>=10.0
 numpy>=1.24
 
+# ----- Claude API (photo quality preflight + follow-up chat) -----
+# Optional: features gracefully degrade if ANTHROPIC_API_KEY isn't set.
+anthropic>=0.40
+
 # ----- Notebook / training only (not needed for the deployed app,
 #       but kept here so `pip install -r requirements.txt` in a fresh
 #       dev environment gets you everything for the notebooks too).

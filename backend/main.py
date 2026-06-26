@@ -13,12 +13,14 @@ In production (Docker / HF Spaces): the Dockerfile runs uvicorn on 0.0.0.0:7860.
 
 import io
 from pathlib import Path
+from typing import Any
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import Body, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, UnidentifiedImageError
 
+from backend import claude as claude_api
 from backend.gradcam import compute_gradcam_overlay
 from backend.model import load_model, predict_top3
 
@@ -77,7 +79,63 @@ async def predict(file: UploadFile = File(...)):
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "classes": bundle["classes"]}
+    return {
+        "status": "ok",
+        "classes": bundle["classes"],
+        "claude_available": claude_api.is_available(),
+    }
+
+
+# ---------- Photo quality preflight (Claude vision) ----------
+
+def _read_uploaded_image(file: UploadFile, raw: bytes) -> Image.Image:
+    """Shared validation for both /api/predict and /api/preflight."""
+    if file.content_type and not file.content_type.startswith("image/"):
+        raise HTTPException(400, f"Expected an image, got {file.content_type}.")
+    if not raw:
+        raise HTTPException(400, "Empty upload.")
+    if len(raw) > 12 * 1024 * 1024:
+        raise HTTPException(413, "Image too large. Keep it under 12 MB.")
+    try:
+        image = Image.open(io.BytesIO(raw))
+        image.verify()
+        return Image.open(io.BytesIO(raw))
+    except (UnidentifiedImageError, Exception):
+        raise HTTPException(400, "Could not read the image.")
+
+
+@app.post("/api/preflight")
+async def preflight(file: UploadFile = File(...)):
+    """
+    Quick photo quality + subject check via Claude vision.
+
+    Returns {ok, category, reason, used_claude}. If Claude is unavailable (no API key),
+    used_claude=false and ok=true - the classifier's own low-confidence fallback handles it.
+    """
+    raw = await file.read()
+    image = _read_uploaded_image(file, raw)
+    return claude_api.preflight_check(image)
+
+
+# ---------- Follow-up Q&A chat (Claude text) ----------
+
+@app.post("/api/chat")
+async def chat(payload: dict[str, Any] = Body(...)):
+    """
+    Stateless chat endpoint. The frontend tracks history and posts the full conversation
+    each turn.
+
+    Body:
+      {
+        "messages": [{"role": "user"|"assistant", "content": str}, ...],
+        "context":  {"name": str, "code": str, "malignancy": str, "probability": float} | null
+      }
+    """
+    messages = payload.get("messages") or []
+    if not isinstance(messages, list) or not messages:
+        raise HTTPException(400, "Body must include a non-empty 'messages' array.")
+    context = payload.get("context")
+    return claude_api.chat_reply(messages, context)
 
 
 # ----- Static frontend -----
