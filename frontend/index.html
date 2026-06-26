@@ -65,8 +65,17 @@
 
     <!-- ============ Screen 2: Results ============ -->
     <section class="screen" data-screen="results">
-      <div class="results-thumb-wrap">
-        <img id="results-thumb" alt="Submitted photo" />
+      <div class="results-photo">
+        <div class="photo-pair">
+          <figure class="photo-frame">
+            <img id="results-thumb" alt="Submitted photo" />
+            <figcaption>Your photo</figcaption>
+          </figure>
+          <figure class="photo-frame heatmap-frame" id="heatmap-frame" hidden>
+            <img id="results-heatmap" alt="Grad-CAM heatmap" />
+            <figcaption>Where the model looked</figcaption>
+          </figure>
+        </div>
       </div>
 
       <div id="top-guess" class="top-guess"></div>

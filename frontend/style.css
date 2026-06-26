@@ -284,15 +284,39 @@ button { font-family: inherit; }
    Results screen
    ============================================================ */
 
-.results-thumb-wrap {
-  width: 200px; height: 200px;
+.results-photo { margin: 0 0 40px; }
+.photo-pair {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.photo-frame { margin: 0; }
+.photo-frame img {
+  width: 220px; height: 220px;
+  object-fit: cover;
+  display: block;
   border-radius: var(--radius-sm);
-  overflow: hidden;
-  margin: 0 auto 40px;
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
 }
-#results-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-frame figcaption {
+  margin-top: 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-mute);
+  text-align: center;
+  font-weight: 600;
+}
+.heatmap-frame img {
+  /* tasteful indicator that this is an interpretation, not the raw photo */
+  outline: 1px solid var(--sage);
+  outline-offset: 2px;
+}
+@media (max-width: 520px) {
+  .photo-frame img { width: 160px; height: 160px; }
+}
 
 .top-guess {
   text-align: center;

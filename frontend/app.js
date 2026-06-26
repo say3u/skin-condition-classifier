@@ -278,9 +278,19 @@ function renderResults(data) {
   }
 }
 
-// Confident path - show top-3 bars + warning if malignant
+// Confident path - show top-3 bars + warning if malignant + grad-cam heatmap if available
 function renderConfidentResult(data) {
   const top1 = data.top_3[0];
+
+  // Show heatmap (Grad-CAM) next to the photo if the backend produced one
+  const heatmapFrame = $("#heatmap-frame");
+  const heatmapImg = $("#results-heatmap");
+  if (data.heatmap) {
+    heatmapImg.src = data.heatmap;
+    heatmapFrame.hidden = false;
+  } else {
+    heatmapFrame.hidden = true;
+  }
 
   // Show the More Info / Try Another row in normal layout (not low-conf)
   $("#btn-info").style.display = "";
@@ -338,6 +348,9 @@ function renderConfidentResult(data) {
 
 // Low-confidence path - no fake diagnosis, show tips for a better photo
 function renderCouldntIdentify(data) {
+  // Hide the heatmap - it would be meaningless on a low-confidence result
+  $("#heatmap-frame").hidden = true;
+
   // Hide info button, promote "Try another photo" to primary
   $("#btn-info").style.display = "none";
   $("#btn-retry-1").classList.remove("btn-secondary");
