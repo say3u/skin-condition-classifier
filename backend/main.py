@@ -19,6 +19,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, UnidentifiedImageError
 
+from backend.gradcam import compute_gradcam_overlay
 from backend.model import load_model, predict_top3
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -37,7 +38,7 @@ bundle = load_model(MODEL_PATH)
 
 @app.post("/api/predict")
 async def predict(file: UploadFile = File(...)):
-    """Accept an image, return the top-3 classification."""
+    """Accept an image, return the top-3 classification plus a Grad-CAM heatmap overlay."""
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(400, f"Expected an image, got {file.content_type}.")
 
@@ -54,7 +55,24 @@ async def predict(file: UploadFile = File(...)):
     except (UnidentifiedImageError, Exception):
         raise HTTPException(400, "Could not read the image.")
 
-    return predict_top3(bundle, image)
+    result = predict_top3(bundle, image)
+
+    # Only compute the heatmap when the model is actually confident enough that the
+    # explanation is meaningful. On low-confidence "couldn't identify" results, the
+    # heatmap would be noise.
+    if not result["low_confidence"]:
+        try:
+            top1_idx = bundle["classes"].index(result["top_3"][0]["code"])
+            overlay, _ = compute_gradcam_overlay(bundle, image, target_class_idx=top1_idx)
+            result["heatmap"] = overlay
+        except Exception as exc:
+            # Grad-CAM failure shouldn't break prediction. Log and continue.
+            print(f"[gradcam] failed: {exc}")
+            result["heatmap"] = None
+    else:
+        result["heatmap"] = None
+
+    return result
 
 
 @app.get("/api/health")
