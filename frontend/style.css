@@ -519,6 +519,162 @@ button { font-family: inherit; }
 }
 
 /* ============================================================
+   Preflight alert (Claude vision rejecting the photo before classify)
+   ============================================================ */
+
+.preflight-alert {
+  background: var(--rust-tint);
+  border: 1px solid rgba(184, 92, 74, 0.4);
+  border-left: 3px solid var(--rust);
+  border-radius: var(--radius-sm);
+  padding: 20px 22px;
+  margin-top: 20px;
+}
+.preflight-alert h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rust);
+}
+.preflight-alert p {
+  margin: 0 0 14px;
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+.preflight-alert .btn {
+  font-size: 13px;
+  padding: 10px 18px;
+}
+
+/* ============================================================
+   Chat panel (Claude follow-up Q&A on the results screen)
+   ============================================================ */
+
+.chat-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  margin: 36px 0 0;
+  box-shadow: var(--shadow);
+}
+.chat-card h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.chat-card .chat-help {
+  margin: 0 0 20px;
+  font-size: 13px;
+  color: var(--ink-mute);
+  line-height: 1.5;
+}
+.chat-card .chat-help em {
+  display: inline-block;
+  margin: 2px 4px 2px 0;
+  background: var(--line-soft);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-style: normal;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  min-height: 0;
+}
+.chat-message { display: flex; max-width: 85%; }
+.chat-message.user { align-self: flex-end; justify-content: flex-end; }
+.chat-message.assistant { align-self: flex-start; }
+.chat-message.system { align-self: center; max-width: 100%; }
+.chat-bubble {
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.chat-message.user .chat-bubble {
+  background: var(--ink);
+  color: var(--cream);
+  border-bottom-right-radius: 4px;
+}
+.chat-message.assistant .chat-bubble {
+  background: var(--line-soft);
+  color: var(--ink);
+  border-bottom-left-radius: 4px;
+}
+.chat-message.system .chat-bubble {
+  background: var(--rust-tint);
+  color: var(--rust);
+  font-size: 13px;
+  text-align: center;
+}
+
+.typing-indicator {
+  display: inline-flex; gap: 4px;
+  padding: 14px 16px;
+  background: var(--line-soft);
+  border-radius: 14px; border-bottom-left-radius: 4px;
+}
+.typing-indicator span {
+  width: 6px; height: 6px;
+  background: var(--ink-mute);
+  border-radius: 50%;
+  animation: typing 1.2s infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.30s; }
+@keyframes typing {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+.chat-input-form {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.chat-input-form input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  font-family: var(--font-body);
+  font-size: 14px;
+  background: var(--cream);
+  color: var(--ink);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.chat-input-form input:focus {
+  outline: none;
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px var(--sage-tint);
+}
+.chat-input-form button {
+  padding: 12px 22px;
+  font-size: 14px;
+}
+
+.chat-disclaimer {
+  margin: 14px 0 0;
+  font-size: 11px;
+  color: var(--ink-mute);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ============================================================
    Loading state
    ============================================================ */
 

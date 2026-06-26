@@ -155,10 +155,21 @@ const btnBack     = $("#btn-back");
 const btnRetry1   = $("#btn-retry-1");
 const btnRetry2   = $("#btn-retry-2");
 
+const preflightAlert  = $("#preflight-alert");
+const preflightReason = $("#preflight-reason");
+const btnDismissPreflight = $("#btn-dismiss-preflight");
+
+const chatCard     = $("#chat-card");
+const chatMessages = $("#chat-messages");
+const chatForm     = $("#chat-form");
+const chatInput    = $("#chat-input");
+const chatSend     = $("#chat-send");
+
 // ---------- State ----------
 let cameraStream = null;     // MediaStream when webcam is active
 let capturedBlob = null;     // The image to send to /api/predict
 let lastResult = null;       // Last /api/predict response
+let conversation = [];       // Chat history: [{role: "user"|"assistant", content: str}, ...]
 
 // ---------- Loading overlay ----------
 function loading(on) {
@@ -244,20 +255,24 @@ fileInput.addEventListener("change", (e) => {
   btnClassify.disabled = false;
 });
 
-// ---------- Classify ----------
+// ---------- Classify (preflight + predict pipeline) ----------
 btnClassify.addEventListener("click", async () => {
   if (!capturedBlob) return;
+  hidePreflightAlert();
   loading(true);
   try {
-    const formData = new FormData();
-    formData.append("file", capturedBlob, "photo.jpg");
-    const res = await fetch("/api/predict", { method: "POST", body: formData });
-    if (!res.ok) {
-      const detail = await res.json().catch(() => ({}));
-      throw new Error(detail.detail || `Server returned ${res.status}`);
+    // Step 1: photo quality preflight via Claude vision.
+    // Fails open: if Claude is unavailable, this just returns ok=true.
+    const preflight = await postImage("/api/preflight", capturedBlob);
+    if (!preflight.ok) {
+      showPreflightAlert(preflight.reason || "This photo isn't usable for classification.");
+      return;
     }
-    lastResult = await res.json();
+
+    // Step 2: run the actual classifier.
+    lastResult = await postImage("/api/predict", capturedBlob);
     renderResults(lastResult);
+    resetChat();
     showScreen("results");
   } catch (err) {
     alert("Classification failed: " + err.message);
@@ -265,6 +280,26 @@ btnClassify.addEventListener("click", async () => {
     loading(false);
   }
 });
+
+async function postImage(url, blob) {
+  const formData = new FormData();
+  formData.append("file", blob, "photo.jpg");
+  const res = await fetch(url, { method: "POST", body: formData });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    throw new Error(detail.detail || `Server returned ${res.status}`);
+  }
+  return res.json();
+}
+
+function showPreflightAlert(reason) {
+  preflightReason.textContent = reason;
+  preflightAlert.hidden = false;
+}
+function hidePreflightAlert() {
+  preflightAlert.hidden = true;
+}
+btnDismissPreflight.addEventListener("click", hidePreflightAlert);
 
 // ---------- Render results ----------
 function renderResults(data) {
@@ -278,9 +313,13 @@ function renderResults(data) {
   }
 }
 
-// Confident path - show top-3 bars + warning if malignant + grad-cam heatmap if available
+// Confident path - show top-3 bars + warning if malignant + grad-cam heatmap if available + chat
 function renderConfidentResult(data) {
   const top1 = data.top_3[0];
+
+  // Show the chat panel only on confident results - on low-confidence we don't have
+  // a real classification to discuss.
+  chatCard.hidden = false;
 
   // Show heatmap (Grad-CAM) next to the photo if the backend produced one
   const heatmapFrame = $("#heatmap-frame");
@@ -348,8 +387,9 @@ function renderConfidentResult(data) {
 
 // Low-confidence path - no fake diagnosis, show tips for a better photo
 function renderCouldntIdentify(data) {
-  // Hide the heatmap - it would be meaningless on a low-confidence result
+  // Hide the heatmap and chat - both would be meaningless on a low-confidence result
   $("#heatmap-frame").hidden = true;
+  chatCard.hidden = true;
 
   // Hide info button, promote "Try another photo" to primary
   $("#btn-info").style.display = "none";
@@ -441,6 +481,82 @@ function resetCapture() {
 }
 btnRetry1.addEventListener("click", resetCapture);
 btnRetry2.addEventListener("click", resetCapture);
+
+// ---------- Chat (follow-up Q&A via /api/chat) ----------
+function resetChat() {
+  conversation = [];
+  chatMessages.innerHTML = "";
+  chatInput.value = "";
+  chatSend.disabled = false;
+}
+
+function appendChatMessage(role, text) {
+  const wrap = document.createElement("div");
+  wrap.className = `chat-message ${role}`;
+  const bubble = document.createElement("div");
+  bubble.className = "chat-bubble";
+  bubble.textContent = text;
+  wrap.appendChild(bubble);
+  chatMessages.appendChild(wrap);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return wrap;
+}
+
+function appendTypingIndicator() {
+  const wrap = document.createElement("div");
+  wrap.className = "chat-message assistant typing";
+  wrap.innerHTML = `
+    <div class="typing-indicator">
+      <span></span><span></span><span></span>
+    </div>
+  `;
+  chatMessages.appendChild(wrap);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return wrap;
+}
+
+chatForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const text = chatInput.value.trim();
+  if (!text || !lastResult) return;
+
+  appendChatMessage("user", text);
+  conversation.push({ role: "user", content: text });
+  chatInput.value = "";
+  chatSend.disabled = true;
+  const typing = appendTypingIndicator();
+
+  try {
+    const top1 = lastResult.top_3[0];
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: conversation,
+        context: {
+          name: top1.name,
+          code: top1.code,
+          malignancy: top1.malignancy,
+          probability: top1.probability,
+        },
+      }),
+    });
+    const data = await res.json();
+    typing.remove();
+    if (data.ok && data.reply) {
+      conversation.push({ role: "assistant", content: data.reply });
+      appendChatMessage("assistant", data.reply);
+    } else {
+      appendChatMessage("system", data.error || "Couldn't reach the chat service.");
+    }
+  } catch (err) {
+    typing.remove();
+    appendChatMessage("system", "Network error. Try again in a moment.");
+  } finally {
+    chatSend.disabled = false;
+    chatInput.focus();
+  }
+});
 
 // ---------- Tiny html-escape helper ----------
 function escapeHtml(s) {

@@ -59,6 +59,13 @@
         <div class="capture-actions">
           <button class="btn btn-primary" id="btn-classify" disabled>Classify</button>
         </div>
+
+        <!-- Inline alert shown when Claude vision rejects the photo as too blurry / not skin / etc. -->
+        <div id="preflight-alert" class="preflight-alert" hidden>
+          <h3 id="preflight-title">Couldn't use this photo</h3>
+          <p id="preflight-reason"></p>
+          <button class="btn btn-secondary" id="btn-dismiss-preflight">OK, I'll try again</button>
+        </div>
       </div>
 
     </section>
@@ -88,6 +95,28 @@
         <button class="btn btn-primary" id="btn-info">More information</button>
         <button class="btn btn-secondary" id="btn-retry-1">Try another photo</button>
       </div>
+
+      <!-- ============ Follow-up Q&A chat (powered by Claude) ============ -->
+      <section class="chat-card" id="chat-card" hidden>
+        <h3>Ask a follow-up</h3>
+        <p class="chat-help">
+          Suggestions: <em>What does this mean?</em> <em>How do I check my own moles?</em> <em>What's a dermatologist appointment like?</em>
+        </p>
+        <div class="chat-messages" id="chat-messages"></div>
+        <form class="chat-input-form" id="chat-form">
+          <input
+            type="text"
+            id="chat-input"
+            placeholder="Ask a question..."
+            autocomplete="off"
+            maxlength="300"
+          />
+          <button type="submit" class="btn btn-primary" id="chat-send">Send</button>
+        </form>
+        <p class="chat-disclaimer">
+          Replies are AI-generated and not medical advice.
+        </p>
+      </section>
     </section>
 
     <!-- ============ Screen 3: Info ============ -->
