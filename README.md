@@ -1,5 +1,5 @@
 ---
-title: KONSEI Skin Vision
+title: KONSEI Skin Lab
 emoji: 🩺
 colorFrom: gray
 colorTo: gray
@@ -10,7 +10,7 @@ license: mit
 short_description: Educational skin-lesion classifier. Not a diagnostic tool.
 ---
 
-# KONSEI Skin Vision
+# KONSEI Skin Lab
 
 A web app that takes a photo of a skin lesion and returns its top guesses across seven
 dermatology categories &mdash; built as a personal project to learn computer vision, model

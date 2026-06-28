@@ -29,7 +29,7 @@ FRONTEND_DIR = ROOT / "frontend"
 MODEL_PATH = ROOT / "skin_classifier_efficientnet_b0.pt"
 
 app = FastAPI(
-    title="KONSEI Skin Vision API",
+    title="KONSEI Skin Lab API",
     description="Educational only — not a diagnostic tool.",
     version="1.0.0",
 )
