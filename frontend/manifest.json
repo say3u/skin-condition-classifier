@@ -1,7 +1,7 @@
 {
-  "name": "Skin Condition Classifier",
-  "short_name": "Skin Classifier",
-  "description": "An educational image classifier for skin lesions. Not a diagnostic tool.",
+  "name": "KONSEI Skin Vision",
+  "short_name": "KONSEI",
+  "description": "KONSEI Skin Vision — an educational image classifier for skin lesions. Not a diagnostic tool.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

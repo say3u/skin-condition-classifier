@@ -1,5 +1,5 @@
 ---
-title: Skin Condition Classifier
+title: KONSEI Skin Vision
 emoji: 🩺
 colorFrom: gray
 colorTo: gray
@@ -7,10 +7,10 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
-short_description: Educational skin-lesion classifier (HAM10000 + EfficientNet)
+short_description: KONSEI Skin Vision — educational skin-lesion classifier (HAM10000 + EfficientNet)
 ---
 
-# Skin Condition Classifier
+# KONSEI Skin Vision
 
 A web app that takes a photo of a skin lesion and returns its top guesses across seven
 dermatology categories &mdash; built as a personal project to learn computer vision, model

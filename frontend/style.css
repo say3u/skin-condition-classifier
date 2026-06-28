@@ -75,12 +75,23 @@ button { font-family: inherit; }
   width: 12px; height: 12px; border-radius: 50%;
   background: var(--sage);
 }
+.brand-wordmark { display: flex; align-items: baseline; gap: 8px; }
 .brand-name {
   font-family: var(--font-display);
   font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: 0.04em;    /* slight tracking outward, brand-style */
   color: var(--ink);
+}
+.brand-product {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
 }
 
 .site-link {
