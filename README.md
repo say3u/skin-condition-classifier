@@ -7,7 +7,7 @@ sdk: docker
 app_port: 7860
 pinned: false
 license: mit
-short_description: KONSEI Skin Vision — educational skin-lesion classifier (HAM10000 + EfficientNet)
+short_description: Educational skin-lesion classifier. Not a diagnostic tool.
 ---
 
 # KONSEI Skin Vision
