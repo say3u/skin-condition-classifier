@@ -20,8 +20,8 @@
   --rust:         #b85c4a;   /* danger / malignant warnings */
   --rust-tint:    rgba(184, 92, 74, 0.08);
 
-  /* Type - Playfair for display (high-contrast editorial serif), Inter for body */
-  --font-display: "Playfair Display", "Times New Roman", Georgia, serif;
+  /* Type - DM Sans for display (modern geometric, Lululemon-style confidence), Inter for body */
+  --font-display: "DM Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-body:    "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   /* Layout */
@@ -77,8 +77,9 @@ button { font-family: inherit; }
 }
 .brand-name {
   font-family: var(--font-display);
-  font-size: 18px;
-  letter-spacing: -0.01em;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--ink);
 }
 
@@ -137,10 +138,10 @@ button { font-family: inherit; }
 
 .hero-title {
   font-family: var(--font-display);
-  font-weight: 500;
-  font-size: clamp(42px, 5.5vw, 64px);
-  line-height: 1.08;
-  letter-spacing: -0.015em;
+  font-weight: 700;
+  font-size: clamp(44px, 6vw, 72px);
+  line-height: 1.0;
+  letter-spacing: -0.035em;
   margin: 0 0 24px;
   color: var(--ink);
 }
@@ -331,9 +332,10 @@ button { font-family: inherit; }
 }
 .top-guess .name {
   font-family: var(--font-display);
-  font-size: clamp(32px, 4vw, 44px);
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  font-size: clamp(34px, 4.5vw, 48px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
   margin: 0 0 12px;
 }
 .top-guess .meta {
@@ -480,10 +482,10 @@ button { font-family: inherit; }
 }
 .info-article h1 {
   font-family: var(--font-display);
-  font-weight: 400;
-  font-size: clamp(32px, 4vw, 44px);
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  font-size: clamp(34px, 4.5vw, 48px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
   margin: 0 0 10px;
   color: var(--ink);
 }
@@ -563,8 +565,8 @@ button { font-family: inherit; }
   margin: 0 0 6px;
   font-family: var(--font-display);
   font-size: 22px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.025em;
   color: var(--ink);
 }
 .chat-card .chat-help {
