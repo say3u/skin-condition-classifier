@@ -195,7 +195,18 @@ button { font-family: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.18s ease, transform 0.18s ease;
 }
+/* When there's no image / no camera, the whole stage is a tappable target. */
+.capture-stage.is-tappable { cursor: pointer; }
+.capture-stage.is-tappable:hover,
+.capture-stage.is-tappable:focus-visible {
+  background: #1e1a15;
+  outline: none;
+}
+.capture-stage.is-tappable:hover .capture-placeholder,
+.capture-stage.is-tappable:focus-visible .capture-placeholder { opacity: 0.85; }
+.capture-stage.is-tappable:active { transform: scale(0.995); }
 
 #camera-video,
 #preview-image {
@@ -211,11 +222,43 @@ button { font-family: inherit; }
 .capture-placeholder {
   color: var(--cream);
   text-align: center;
-  opacity: 0.55;
+  opacity: 0.65;
   padding: 24px;
+  transition: opacity 0.18s ease;
+  user-select: none;
 }
 .capture-placeholder svg { display: block; margin: 0 auto 12px; opacity: 0.9; }
-.capture-placeholder p { margin: 0; font-size: 14px; letter-spacing: 0.02em; }
+.capture-placeholder p { margin: 0; font-size: 15px; letter-spacing: 0.02em; font-weight: 600; }
+.capture-placeholder p.capture-sub {
+  margin-top: 6px; font-size: 12px; font-weight: 400; opacity: 0.7;
+  letter-spacing: 0.04em;
+}
+
+/* Swap-camera pill in the corner of the video preview */
+.camera-switch-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  width: 40px; height: 40px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--cream);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.camera-switch-btn:hover { background: rgba(0, 0, 0, 0.75); }
+.camera-switch-btn:active { transform: scale(0.94); }
+.camera-switch-btn:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 2px;
+}
 
 .capture-controls {
   display: flex;

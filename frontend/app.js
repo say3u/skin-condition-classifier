@@ -144,16 +144,18 @@ const screens = {
 const cameraVideo    = $("#camera-video");
 const previewImage   = $("#preview-image");
 const placeholder    = $("#capture-placeholder");
+const captureStage   = $("#capture-stage");
 const captureCanvas  = $("#capture-canvas");
 const fileInput      = $("#file-input");
 
-const btnCamera   = $("#btn-camera");
-const btnUpload   = $("#btn-upload");
-const btnClassify = $("#btn-classify");
-const btnInfo     = $("#btn-info");
-const btnBack     = $("#btn-back");
-const btnRetry1   = $("#btn-retry-1");
-const btnRetry2   = $("#btn-retry-2");
+const btnCamera        = $("#btn-camera");
+const btnUpload        = $("#btn-upload");
+const btnClassify      = $("#btn-classify");
+const btnSwitchCamera  = $("#btn-switch-camera");
+const btnInfo          = $("#btn-info");
+const btnBack          = $("#btn-back");
+const btnRetry1        = $("#btn-retry-1");
+const btnRetry2        = $("#btn-retry-2");
 
 const preflightAlert  = $("#preflight-alert");
 const preflightReason = $("#preflight-reason");
@@ -166,10 +168,11 @@ const chatInput    = $("#chat-input");
 const chatSend     = $("#chat-send");
 
 // ---------- State ----------
-let cameraStream = null;     // MediaStream when webcam is active
-let capturedBlob = null;     // The image to send to /api/predict
-let lastResult = null;       // Last /api/predict response
-let conversation = [];       // Chat history: [{role: "user"|"assistant", content: str}, ...]
+let cameraStream = null;             // MediaStream when webcam is active
+let capturedBlob = null;             // The image to send to /api/predict
+let lastResult = null;               // Last /api/predict response
+let conversation = [];               // Chat history: [{role: "user"|"assistant", content: str}, ...]
+let currentFacing = "environment";   // "environment" (rear) or "user" (front / selfie)
 
 // ---------- Loading overlay ----------
 function loading(on) {
@@ -192,9 +195,11 @@ function showScreen(name) {
 
 // ---------- Camera handling ----------
 async function startCamera() {
+  // Stop any existing stream first (matters when switching between front/rear).
+  stopCamera();
   try {
     cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment", width: 1280, height: 960 },
+      video: { facingMode: { ideal: currentFacing }, width: 1280, height: 960 },
       audio: false,
     });
     cameraVideo.srcObject = cameraStream;
@@ -202,10 +207,20 @@ async function startCamera() {
     previewImage.classList.remove("visible");
     placeholder.style.display = "none";
     btnCamera.textContent = "Take photo";
-    btnClassify.disabled = true;  // disabled until they take a frame
+    btnClassify.disabled = true;                    // disabled until they take a frame
+    btnSwitchCamera.hidden = false;                 // show the swap-camera control
+    updateStageInteractive();
   } catch (err) {
     alert("Couldn't access the camera. " + (err.message || "") +
           "\n\nYou can still use \"Upload photo\" to pick an image.");
+  }
+}
+
+async function switchCamera() {
+  // Flip environment <-> user and restart the stream.
+  currentFacing = currentFacing === "environment" ? "user" : "environment";
+  if (cameraStream) {
+    await startCamera();
   }
 }
 
@@ -222,7 +237,9 @@ function takeSnapshot() {
     cameraVideo.classList.remove("visible");
     stopCamera();
     btnCamera.textContent = "Use camera";
+    btnSwitchCamera.hidden = true;
     btnClassify.disabled = false;
+    updateStageInteractive();
   }, "image/jpeg", 0.92);
 }
 
@@ -231,12 +248,42 @@ function stopCamera() {
     cameraStream.getTracks().forEach(t => t.stop());
     cameraStream = null;
   }
+  btnSwitchCamera.hidden = true;
 }
+
+// The capture stage acts as a big tap target when it's in placeholder state.
+// Tapping starts the camera. When something is showing (video / photo), the
+// stage is no longer a button — the on-screen controls take over.
+function updateStageInteractive() {
+  const isPlaceholder = !cameraStream && !capturedBlob;
+  captureStage.classList.toggle("is-tappable", isPlaceholder);
+  captureStage.setAttribute("aria-disabled", String(!isPlaceholder));
+}
+
+function handleStageTap(e) {
+  // Don't hijack clicks on the swap-camera button
+  if (e.target.closest(".camera-switch-btn")) return;
+  if (cameraStream || capturedBlob) return;
+  startCamera();
+}
+
+captureStage.addEventListener("click", handleStageTap);
+captureStage.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    handleStageTap(e);
+  }
+});
 
 btnCamera.addEventListener("click", () => {
   if (cameraStream) takeSnapshot();
   else startCamera();
 });
+
+btnSwitchCamera.addEventListener("click", switchCamera);
+
+// Initialize the stage's interactive state on first load
+updateStageInteractive();
 
 // ---------- File upload ----------
 btnUpload.addEventListener("click", () => fileInput.click());
