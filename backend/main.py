@@ -62,8 +62,8 @@ ALLOWED_ORIGIN_HOSTS = {
     "127.0.0.1",
     "sayeu-skin-condition-classifier.hf.space",       # HF Space
     "huggingface.co",                                  # HF page iframe origin
-    # add your custom domain here once you register it, e.g.:
-    # "konseiskinlab.com", "www.konseiskinlab.com",
+    "konsei.app",                                      # custom domain
+    "www.konsei.app",
 }
 # Allow overriding via env so this can be extended without a code change.
 extra = os.environ.get("EXTRA_ORIGIN_HOSTS", "")
