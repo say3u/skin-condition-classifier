@@ -12,13 +12,18 @@ In production (Docker / HF Spaces): the Dockerfile runs uvicorn on 0.0.0.0:7860.
 """
 
 import io
+import os
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
-from fastapi import Body, FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi import Body, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, UnidentifiedImageError
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from backend import claude as claude_api
 from backend.gradcam import compute_gradcam_overlay
@@ -34,13 +39,69 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# ---------- Rate limiting ----------
+# Per-IP request caps to prevent someone scripting our endpoints and
+# draining the Claude budget or hammering the model.
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        {"detail": "Too many requests. Slow down and try again in a minute."},
+        status_code=429,
+    )
+
+
+# ---------- Origin allowlist ----------
+# Only accept API traffic that looks like it came from our own web app.
+# Not bulletproof (headers can be spoofed) but blocks the naive curl / script abuse.
+ALLOWED_ORIGIN_HOSTS = {
+    "localhost",
+    "127.0.0.1",
+    "sayeu-skin-condition-classifier.hf.space",       # HF Space
+    "huggingface.co",                                  # HF page iframe origin
+    # add your custom domain here once you register it, e.g.:
+    # "konseiskinlab.com", "www.konseiskinlab.com",
+}
+# Allow overriding via env so this can be extended without a code change.
+extra = os.environ.get("EXTRA_ORIGIN_HOSTS", "")
+if extra:
+    for host in [h.strip() for h in extra.split(",") if h.strip()]:
+        ALLOWED_ORIGIN_HOSTS.add(host)
+
+
+def _origin_host(request: Request) -> str | None:
+    """Best-effort extraction of the request's origin host, from Origin then Referer."""
+    origin = request.headers.get("origin") or request.headers.get("referer") or ""
+    if not origin:
+        return None
+    try:
+        return urlparse(origin).hostname
+    except Exception:
+        return None
+
+
+def enforce_origin(request: Request):
+    """Reject API calls that don't come from an allowlisted host."""
+    host = _origin_host(request)
+    if host is None or host not in ALLOWED_ORIGIN_HOSTS:
+        raise HTTPException(
+            status_code=403,
+            detail="This API is only available from the KONSEI Skin Lab web app.",
+        )
+
+
 # Load the model once at startup, not per request.
 bundle = load_model(MODEL_PATH)
 
 
 @app.post("/api/predict")
-async def predict(file: UploadFile = File(...)):
+@limiter.limit("15/minute")
+async def predict(request: Request, file: UploadFile = File(...)):
     """Accept an image, return the top-3 classification plus a Grad-CAM heatmap overlay."""
+    enforce_origin(request)
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(400, f"Expected an image, got {file.content_type}.")
 
@@ -105,13 +166,15 @@ def _read_uploaded_image(file: UploadFile, raw: bytes) -> Image.Image:
 
 
 @app.post("/api/preflight")
-async def preflight(file: UploadFile = File(...)):
+@limiter.limit("15/minute")
+async def preflight(request: Request, file: UploadFile = File(...)):
     """
     Quick photo quality + subject check via Claude vision.
 
     Returns {ok, category, reason, used_claude}. If Claude is unavailable (no API key),
     used_claude=false and ok=true - the classifier's own low-confidence fallback handles it.
     """
+    enforce_origin(request)
     raw = await file.read()
     image = _read_uploaded_image(file, raw)
     return claude_api.preflight_check(image)
@@ -120,7 +183,8 @@ async def preflight(file: UploadFile = File(...)):
 # ---------- Follow-up Q&A chat (Claude text) ----------
 
 @app.post("/api/chat")
-async def chat(payload: dict[str, Any] = Body(...)):
+@limiter.limit("20/minute")
+async def chat(request: Request, payload: dict[str, Any] = Body(...)):
     """
     Stateless chat endpoint. The frontend tracks history and posts the full conversation
     each turn.
@@ -131,6 +195,7 @@ async def chat(payload: dict[str, Any] = Body(...)):
         "context":  {"name": str, "code": str, "malignancy": str, "probability": float} | null
       }
     """
+    enforce_origin(request)
     messages = payload.get("messages") or []
     if not isinstance(messages, list) or not messages:
         raise HTTPException(400, "Body must include a non-empty 'messages' array.")

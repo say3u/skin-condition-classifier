@@ -2,6 +2,7 @@
 fastapi>=0.110
 uvicorn[standard]>=0.27
 python-multipart>=0.0.9
+slowapi>=0.1.9              # per-IP rate limiting on the API endpoints
 
 # ----- Model + inference -----
 torch>=2.1
