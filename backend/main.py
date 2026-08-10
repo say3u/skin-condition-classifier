@@ -35,7 +35,7 @@ MODEL_PATH = ROOT / "skin_classifier_efficientnet_b0.pt"
 
 app = FastAPI(
     title="KONSEI Skin Lab API",
-    description="Educational only — not a diagnostic tool.",
+    description="Educational only - not a diagnostic tool.",
     version="1.0.0",
 )
 
@@ -60,9 +60,9 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 ALLOWED_ORIGIN_HOSTS = {
     "localhost",
     "127.0.0.1",
-    "sayeu-skin-condition-classifier.hf.space",       # HF Space
-    "huggingface.co",                                  # HF page iframe origin
-    "konsei.app",                                      # custom domain
+    "sayeu-skin-condition-classifier.hf.space", # HF Space
+    "huggingface.co", # HF page iframe origin
+    "konsei.app", # custom domain
     "www.konsei.app",
 }
 # Allow overriding via env so this can be extended without a code change.
@@ -114,7 +114,7 @@ async def predict(request: Request, file: UploadFile = File(...)):
     try:
         image = Image.open(io.BytesIO(raw))
         image.verify()
-        image = Image.open(io.BytesIO(raw))   # re-open after verify
+        image = Image.open(io.BytesIO(raw)) # re-open after verify
     except (UnidentifiedImageError, Exception):
         raise HTTPException(400, "Could not read the image.")
 
@@ -192,7 +192,7 @@ async def chat(request: Request, payload: dict[str, Any] = Body(...)):
     Body:
       {
         "messages": [{"role": "user"|"assistant", "content": str}, ...],
-        "context":  {"name": str, "code": str, "malignancy": str, "probability": float} | null
+        "context": {"name": str, "code": str, "malignancy": str, "probability": float} | null
       }
     """
     enforce_origin(request)

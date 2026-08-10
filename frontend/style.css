@@ -5,31 +5,31 @@
 
 :root {
   /* Color - warm cream background, Tailwind-gray text for premium clinical-but-inviting feel */
-  --cream:        #FAF7F2;   /* warm off-white background */
-  --cream-deep:   #F3EEE4;   /* slightly deeper cream for hover / disabled */
-  --paper:        #FFFFFF;   /* cards */
-  --ink:          #111827;   /* gray-900, primary text */
-  --ink-soft:     #374151;   /* gray-700, body text */
-  --ink-mute:     #6B7280;   /* gray-500, disclaimers and muted */
-  --ink-fade:     #9CA3AF;   /* gray-400 */
-  --line:         #E5E7EB;   /* gray-200, borders */
-  --line-soft:    #F3F4F6;   /* gray-100, subtle dividers */
-  --sage:         #6f8a6a;   /* accent */
-  --sage-deep:    #557255;   /* accent hover */
-  --sage-tint:    rgba(111, 138, 106, 0.10);
-  --rust:         #b85c4a;   /* danger / malignant warnings */
-  --rust-tint:    rgba(184, 92, 74, 0.08);
+  --cream: #FAF7F2; /* warm off-white background */
+  --cream-deep: #F3EEE4; /* slightly deeper cream for hover / disabled */
+  --paper: #FFFFFF; /* cards */
+  --ink: #111827; /* gray-900, primary text */
+  --ink-soft: #374151; /* gray-700, body text */
+  --ink-mute: #6B7280; /* gray-500, disclaimers and muted */
+  --ink-fade: #9CA3AF; /* gray-400 */
+  --line: #E5E7EB; /* gray-200, borders */
+  --line-soft: #F3F4F6; /* gray-100, subtle dividers */
+  --sage: #6f8a6a; /* accent */
+  --sage-deep: #557255; /* accent hover */
+  --sage-tint: rgba(111, 138, 106, 0.10);
+  --rust: #b85c4a; /* danger / malignant warnings */
+  --rust-tint: rgba(184, 92, 74, 0.08);
 
   /* Type - DM Sans for display (modern geometric, Lululemon-style confidence), Inter for body */
   --font-display: "DM Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-body:    "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   /* Layout */
-  --col:          760px;
-  --col-wide:     980px;
-  --radius:       12px;
-  --radius-sm:    8px;
-  --shadow:       0 1px 2px rgba(26, 20, 16, 0.04), 0 8px 24px rgba(26, 20, 16, 0.06);
+  --col: 760px;
+  --col-wide: 980px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgba(26, 20, 16, 0.04), 0 8px 24px rgba(26, 20, 16, 0.06);
   --shadow-hover: 0 2px 4px rgba(26, 20, 16, 0.06), 0 12px 32px rgba(26, 20, 16, 0.10);
 
   color-scheme: light only;
@@ -80,7 +80,7 @@ button { font-family: inherit; }
   font-family: var(--font-display);
   font-size: 17px;
   font-weight: 800;
-  letter-spacing: 0.04em;    /* slight tracking outward, brand-style */
+  letter-spacing: 0.04em; /* slight tracking outward, brand-style */
   color: var(--ink);
 }
 .brand-product {
@@ -138,7 +138,7 @@ button { font-family: inherit; }
 }
 @keyframes screen-in {
   from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ============================================================
@@ -788,7 +788,7 @@ button { font-family: inherit; }
    ============================================================ */
 
 /* ============================================================
-   Mobile — aggressive compaction so the CAPTURE SCREEN fits in a
+   Mobile - aggressive compaction so the CAPTURE SCREEN fits in a
    single viewport without scrolling on typical phones.
    Results and info screens still allow scroll (they have real content).
    ============================================================ */
@@ -796,7 +796,7 @@ button { font-family: inherit; }
 @media (max-width: 640px) {
   html, body { overscroll-behavior: none; }
 
-  /* Compact header — brand only, no product suffix */
+  /* Compact header - brand only, no product suffix */
   .site-header { padding: 10px 14px; }
   .brand-name { font-size: 15px; }
   .brand-product { display: none; }
@@ -812,7 +812,7 @@ button { font-family: inherit; }
   .screen[data-screen="capture"].active {
     display: flex;
     flex-direction: column;
-    min-height: calc(100dvh - 60px);   /* subtract header height */
+    min-height: calc(100dvh - 60px); /* subtract header height */
   }
 
   /* Kill the desktop hero on mobile - the brand mark is enough context. */

@@ -1,7 +1,7 @@
 {
   "name": "KONSEI Skin Lab",
   "short_name": "KONSEI",
-  "description": "KONSEI Skin Lab — an educational image classifier for skin lesions. Not a diagnostic tool.",
+  "description": "KONSEI Skin Lab - an educational image classifier for skin lesions. Not a diagnostic tool.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

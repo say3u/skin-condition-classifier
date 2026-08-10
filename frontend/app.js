@@ -138,41 +138,41 @@ const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 const screens = {
   capture: $('[data-screen="capture"]'),
   results: $('[data-screen="results"]'),
-  info:    $('[data-screen="info"]'),
+  info: $('[data-screen="info"]'),
 };
 
-const cameraVideo    = $("#camera-video");
-const previewImage   = $("#preview-image");
-const placeholder    = $("#capture-placeholder");
-const captureStage   = $("#capture-stage");
-const captureCanvas  = $("#capture-canvas");
-const fileInput      = $("#file-input");
+const cameraVideo = $("#camera-video");
+const previewImage = $("#preview-image");
+const placeholder = $("#capture-placeholder");
+const captureStage = $("#capture-stage");
+const captureCanvas = $("#capture-canvas");
+const fileInput = $("#file-input");
 
-const btnCamera        = $("#btn-camera");
-const btnUpload        = $("#btn-upload");
-const btnClassify      = $("#btn-classify");
-const btnSwitchCamera  = $("#btn-switch-camera");
-const btnInfo          = $("#btn-info");
-const btnBack          = $("#btn-back");
-const btnRetry1        = $("#btn-retry-1");
-const btnRetry2        = $("#btn-retry-2");
+const btnCamera = $("#btn-camera");
+const btnUpload = $("#btn-upload");
+const btnClassify = $("#btn-classify");
+const btnSwitchCamera = $("#btn-switch-camera");
+const btnInfo = $("#btn-info");
+const btnBack = $("#btn-back");
+const btnRetry1 = $("#btn-retry-1");
+const btnRetry2 = $("#btn-retry-2");
 
-const preflightAlert  = $("#preflight-alert");
+const preflightAlert = $("#preflight-alert");
 const preflightReason = $("#preflight-reason");
 const btnDismissPreflight = $("#btn-dismiss-preflight");
 
-const chatCard     = $("#chat-card");
+const chatCard = $("#chat-card");
 const chatMessages = $("#chat-messages");
-const chatForm     = $("#chat-form");
-const chatInput    = $("#chat-input");
-const chatSend     = $("#chat-send");
+const chatForm = $("#chat-form");
+const chatInput = $("#chat-input");
+const chatSend = $("#chat-send");
 
 // ---------- State ----------
-let cameraStream = null;             // MediaStream when webcam is active
-let capturedBlob = null;             // The image to send to /api/predict
-let lastResult = null;               // Last /api/predict response
-let conversation = [];               // Chat history: [{role: "user"|"assistant", content: str}, ...]
-let currentFacing = "environment";   // "environment" (rear) or "user" (front / selfie)
+let cameraStream = null; // MediaStream when webcam is active
+let capturedBlob = null; // The image to send to /api/predict
+let lastResult = null; // Last /api/predict response
+let conversation = []; // Chat history: [{role: "user"|"assistant", content: str}, ...]
+let currentFacing = "environment"; // "environment" (rear) or "user" (front / selfie)
 
 // ---------- Loading overlay ----------
 function loading(on) {
@@ -207,8 +207,8 @@ async function startCamera() {
     previewImage.classList.remove("visible");
     placeholder.style.display = "none";
     btnCamera.textContent = "Take photo";
-    btnClassify.disabled = true;                    // disabled until they take a frame
-    btnSwitchCamera.hidden = false;                 // show the swap-camera control
+    btnClassify.disabled = true; // disabled until they take a frame
+    btnSwitchCamera.hidden = false; // show the swap-camera control
     updateStageInteractive();
   } catch (err) {
     alert("Couldn't access the camera. " + (err.message || "") +
@@ -253,7 +253,7 @@ function stopCamera() {
 
 // The capture stage acts as a big tap target when it's in placeholder state.
 // Tapping starts the camera. When something is showing (video / photo), the
-// stage is no longer a button — the on-screen controls take over.
+// stage is no longer a button - the on-screen controls take over.
 function updateStageInteractive() {
   const isPlaceholder = !cameraStream && !capturedBlob;
   captureStage.classList.toggle("is-tappable", isPlaceholder);
@@ -458,10 +458,10 @@ function renderCouldntIdentify(data) {
       <h3>For a better classification, try this</h3>
       <ul>
         <li><strong>Use bright, even light.</strong> Natural daylight near a window works best. Avoid overhead shadows.</li>
-        <li><strong>Get closer.</strong> The skin spot should fill most of the frame &mdash; not be a tiny dot.</li>
+        <li><strong>Get closer.</strong> The skin spot should fill most of the frame - not be a tiny dot.</li>
         <li><strong>Hold steady and focus.</strong> Blurry photos are the most common cause of low confidence.</li>
         <li><strong>No glare or wet skin.</strong> Reflective spots throw the model off.</li>
-        <li><strong>Make sure it's a skin lesion.</strong> The model only knows seven dermatology categories &mdash; it can't classify acne, eczema, rosacea, or anything that isn't skin.</li>
+        <li><strong>Make sure it's a skin lesion.</strong> The model only knows seven dermatology categories - it can't classify acne, eczema, rosacea, or anything that isn't skin.</li>
       </ul>
     </div>
   `;
