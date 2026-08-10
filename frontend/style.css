@@ -276,34 +276,6 @@ button { font-family: inherit; }
   font-size: 15px;
 }
 
-/* Photo-taking guidance shown above the Classify button on the capture screen. */
-.photo-tips {
-  margin-top: 16px;
-  padding: 14px 18px;
-  background: var(--sage-tint);
-  border-left: 3px solid var(--sage);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-}
-.photo-tips .tips-title {
-  margin: 0 0 8px;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-weight: 700;
-  color: var(--sage-deep);
-}
-.photo-tips .tips-list {
-  margin: 0;
-  padding-left: 18px;
-  list-style: disc;
-}
-.photo-tips .tips-list li {
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--ink-soft);
-  margin: 3px 0;
-}
-.photo-tips .tips-list strong { color: var(--ink); font-weight: 600; }
 
 /* ============================================================
    Buttons
@@ -815,8 +787,11 @@ button { font-family: inherit; }
     min-height: calc(100dvh - 60px); /* subtract header height */
   }
 
-  /* Kill the desktop hero on mobile - the brand mark is enough context. */
-  .hero { display: none; }
+  /* Hero stays visible on mobile - just tightened */
+  .hero { margin-bottom: 16px; }
+  .hero-title { font-size: clamp(30px, 8vw, 40px); line-height: 1.05; margin-bottom: 12px; }
+  .hero-sub { font-size: 14px; margin-bottom: 6px; }
+  .hero-disclaimer { font-size: 12px; }
 
   /* Compact capture card - fills remaining vertical space */
   .capture-card {
@@ -842,19 +817,6 @@ button { font-family: inherit; }
   .capture-controls .btn {
     padding: 10px 12px;
     font-size: 13px;
-  }
-
-  /* Compact tips - smaller padding + tighter list */
-  .photo-tips {
-    margin-top: 10px;
-    padding: 10px 12px 10px 14px;
-  }
-  .photo-tips .tips-title { font-size: 9px; margin-bottom: 5px; }
-  .photo-tips .tips-list { padding-left: 14px; }
-  .photo-tips .tips-list li {
-    font-size: 11.5px;
-    line-height: 1.35;
-    margin: 2px 0;
   }
 
   /* Primary action */
@@ -884,6 +846,5 @@ button { font-family: inherit; }
 /* Even tighter for smaller phones (iPhone SE / older Android) */
 @media (max-width: 380px) {
   .capture-stage { max-height: 36dvh; }
-  .photo-tips .tips-list li { font-size: 11px; }
   .capture-controls .btn { padding: 9px 8px; font-size: 12px; }
 }
