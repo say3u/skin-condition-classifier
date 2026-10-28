@@ -32,7 +32,50 @@
   --shadow: 0 1px 2px rgba(26, 20, 16, 0.04), 0 8px 24px rgba(26, 20, 16, 0.06);
   --shadow-hover: 0 2px 4px rgba(26, 20, 16, 0.06), 0 12px 32px rgba(26, 20, 16, 0.10);
 
-  color-scheme: light only;
+  color-scheme: light dark;
+}
+
+/* ---------- Dark mode ---------- */
+/* Applies when the user's OS is in dark mode (and no manual override is set),
+   or when the user explicitly toggles the theme via the header button. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --cream:      #14110e;   /* deep warm ink base */
+    --cream-deep: #1c1915;
+    --paper:      #1c1915;   /* card surfaces */
+    --ink:        #FAF7F2;   /* text flips to cream */
+    --ink-soft:   #D4CCBE;
+    --ink-mute:   #8B7D6C;
+    --ink-fade:   #5C544B;
+    --line:       #2a2420;
+    --line-soft:  #221d19;
+    --sage:       #8aa885;   /* lifted sage reads better on dark */
+    --sage-deep:  #6f8a6a;
+    --sage-tint:  rgba(138, 168, 133, 0.14);
+    --rust:       #d2745f;
+    --rust-tint:  rgba(210, 116, 95, 0.12);
+    --shadow:       0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 32px rgba(0, 0, 0, 0.45);
+  }
+}
+/* Manual override from the header toggle (wins over system preference). */
+:root[data-theme="dark"] {
+  --cream:      #14110e;
+  --cream-deep: #1c1915;
+  --paper:      #1c1915;
+  --ink:        #FAF7F2;
+  --ink-soft:   #D4CCBE;
+  --ink-mute:   #8B7D6C;
+  --ink-fade:   #5C544B;
+  --line:       #2a2420;
+  --line-soft:  #221d19;
+  --sage:       #8aa885;
+  --sage-deep:  #6f8a6a;
+  --sage-tint:  rgba(138, 168, 133, 0.14);
+  --rust:       #d2745f;
+  --rust-tint:  rgba(210, 116, 95, 0.12);
+  --shadow:       0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
 * { box-sizing: border-box; }
@@ -94,6 +137,8 @@ button { font-family: inherit; }
   border-left: 1px solid var(--line);
 }
 
+.site-nav { display: flex; align-items: center; gap: 14px; }
+
 .site-link {
   font-size: 13px;
   color: var(--ink-mute);
@@ -104,6 +149,28 @@ button { font-family: inherit; }
   font-weight: 600;
 }
 .site-link:hover { color: var(--ink); border-color: var(--ink); }
+
+/* Theme toggle button in the header */
+.theme-toggle {
+  width: 36px; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  color: var(--ink-mute);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+}
+.theme-toggle:hover { color: var(--ink); border-color: var(--ink); background: var(--line-soft); }
+.theme-toggle:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
+.theme-toggle .icon-moon { display: none; }
+.theme-toggle .icon-sun { display: block; }
+/* Flip the icon in dark mode (and show "sun" meaning "switch to light") */
+:root[data-theme="dark"] .theme-toggle .icon-sun,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .icon-sun { display: block; }
+  :root:not([data-theme="light"]) .theme-toggle .icon-moon { display: none; }
+}
 
 .site-footer {
   padding: 36px 24px;

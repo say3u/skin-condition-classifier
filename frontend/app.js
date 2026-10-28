@@ -615,6 +615,28 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
+// ---------- Theme toggle (light / dark override) ----------
+(function initTheme() {
+  const btn = document.getElementById("btn-theme");
+  const root = document.documentElement;
+  const KEY = "konsei-theme";
+  const saved = localStorage.getItem(KEY);
+  if (saved === "light" || saved === "dark") root.setAttribute("data-theme", saved);
+
+  function current() {
+    const override = root.getAttribute("data-theme");
+    if (override) return override;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  function apply(mode) {
+    root.setAttribute("data-theme", mode);
+    try { localStorage.setItem(KEY, mode); } catch (_) {}
+  }
+  if (btn) {
+    btn.addEventListener("click", () => apply(current() === "dark" ? "light" : "dark"));
+  }
+})();
+
 // ---------- Register the service worker (PWA install + offline cache) ----------
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
