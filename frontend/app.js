@@ -139,6 +139,7 @@ const screens = {
   capture: $('[data-screen="capture"]'),
   results: $('[data-screen="results"]'),
   info: $('[data-screen="info"]'),
+  history: $('[data-screen="history"]'),
 };
 
 const cameraVideo = $("#camera-video");
@@ -320,6 +321,7 @@ btnClassify.addEventListener("click", async () => {
     lastResult = await postImage("/api/predict", capturedBlob);
     renderResults(lastResult);
     resetChat();
+    pushHistoryEntry(capturedBlob, lastResult).catch(() => {});
     showScreen("results");
   } catch (err) {
     alert("Classification failed: " + err.message);
@@ -614,6 +616,89 @@ function escapeHtml(s) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+// ---------- Scan history (localStorage, device-only) ----------
+const HISTORY_KEY = "konsei-history";
+const HISTORY_MAX = 10;
+
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (_) { return []; }
+}
+function saveHistory(entries) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, HISTORY_MAX))); } catch (_) {}
+}
+
+async function pushHistoryEntry(blob, result) {
+  // Shrink to a tiny thumbnail so localStorage doesn't fill up
+  const thumb = await blobToThumbnailDataUrl(blob, 160);
+  const top1 = result.top_3[0];
+  const entry = {
+    ts: Date.now(),
+    thumb,
+    top1: { name: top1.name, code: top1.code, probability: top1.probability, malignancy: top1.malignancy },
+    low_confidence: !!result.low_confidence,
+  };
+  const next = [entry, ...loadHistory()].slice(0, HISTORY_MAX);
+  saveHistory(next);
+}
+
+function blobToThumbnailDataUrl(blob, size) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(size / img.width, size / img.height, 1);
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL("image/jpeg", 0.72));
+    };
+    img.onerror = () => resolve("");
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+function renderHistory() {
+  const list = $("#history-list");
+  const empty = $("#history-empty");
+  const entries = loadHistory();
+  list.innerHTML = "";
+  empty.hidden = entries.length > 0;
+  for (const e of entries) {
+    const li = document.createElement("li");
+    li.className = "history-row";
+    const date = new Date(e.ts).toLocaleString(undefined, {
+      month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+    });
+    const headline = e.low_confidence
+      ? `<span class="history-headline muted">Couldn't identify</span>`
+      : `<span class="history-headline">${escapeHtml(e.top1.name)}</span>
+         <span class="history-pct">${Math.round(e.top1.probability * 100)}%</span>`;
+    const tag = e.low_confidence
+      ? ""
+      : `<span class="history-tag ${e.top1.malignancy.replace(/\s/g, "-")}">${escapeHtml(e.top1.malignancy)}</span>`;
+    li.innerHTML = `
+      <img class="history-thumb" src="${e.thumb}" alt="scan thumbnail"/>
+      <div class="history-meta">
+        <div class="history-top-row">${headline}</div>
+        <div class="history-bottom-row">${tag}<span class="history-date">${escapeHtml(date)}</span></div>
+      </div>
+    `;
+    list.appendChild(li);
+  }
+}
+
+$("#btn-history").addEventListener("click", () => { renderHistory(); showScreen("history"); });
+$("#btn-history-back").addEventListener("click", () => showScreen("capture"));
+$("#btn-history-clear").addEventListener("click", () => {
+  if (!confirm("Clear all saved scans from this device? This can't be undone.")) return;
+  saveHistory([]);
+  renderHistory();
+});
 
 // ---------- Theme toggle (light / dark override) ----------
 (function initTheme() {

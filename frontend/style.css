@@ -139,6 +139,24 @@ button { font-family: inherit; }
 
 .site-nav { display: flex; align-items: center; gap: 14px; }
 
+/* Text-only header buttons (History) match the GitHub link styling. */
+.nav-link-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 2px;
+  transition: color 0.18s, border-color 0.18s;
+}
+.nav-link-btn:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
 .site-link {
   font-size: 13px;
   color: var(--ink-mute);
@@ -643,6 +661,67 @@ button { font-family: inherit; }
   color: var(--ink-mute);
   font-style: italic;
 }
+
+/* ============================================================
+   Scan history (localStorage-backed)
+   ============================================================ */
+
+.history-header { margin-bottom: 24px; }
+.history-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 4vw, 36px);
+  letter-spacing: -0.03em;
+  margin: 0;
+  color: var(--ink);
+}
+.history-sub { color: var(--ink-mute); font-size: 14px; margin: 4px 0 0; }
+
+.history-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--ink-mute);
+  font-size: 14px;
+  background: var(--paper);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+}
+
+.history-list { list-style: none; padding: 0; margin: 0 0 24px; display: flex; flex-direction: column; gap: 10px; }
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+.history-thumb {
+  width: 64px; height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: var(--line-soft);
+}
+.history-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.history-top-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.history-headline { font-weight: 600; font-size: 15px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-headline.muted { color: var(--ink-mute); font-style: italic; }
+.history-pct { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; font-size: 14px; }
+.history-bottom-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-mute); }
+.history-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--sage-tint);
+  color: var(--sage-deep);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.history-tag.cancerous, .history-tag.pre-cancerous { background: var(--rust-tint); color: var(--rust); }
+.history-date { color: var(--ink-fade); }
 
 /* ============================================================
    Preflight alert (Claude vision rejecting the photo before classify)
