@@ -617,6 +617,113 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
+// ---------- PDF report download ----------
+let _html2pdfPromise = null;
+function loadHtml2Pdf() {
+  if (_html2pdfPromise) return _html2pdfPromise;
+  _html2pdfPromise = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+    s.integrity = "sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==";
+    s.crossOrigin = "anonymous";
+    s.onload = () => resolve(window.html2pdf);
+    s.onerror = () => reject(new Error("Couldn't load PDF library"));
+    document.head.appendChild(s);
+  });
+  return _html2pdfPromise;
+}
+
+async function downloadReportPdf() {
+  if (!lastResult || !capturedBlob) return;
+  const btn = $("#btn-download-pdf");
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Preparing PDF...";
+  try {
+    const html2pdf = await loadHtml2Pdf();
+    const photoUrl = await new Promise(r => {
+      const fr = new FileReader();
+      fr.onload = () => r(fr.result);
+      fr.readAsDataURL(capturedBlob);
+    });
+    const node = buildReportNode(lastResult, photoUrl);
+    document.body.appendChild(node);
+    const stamp = new Date().toISOString().slice(0, 10);
+    await html2pdf()
+      .set({
+        margin: 0.4,
+        filename: `konsei-scan-${stamp}.pdf`,
+        image: { type: "jpeg", quality: 0.92 },
+        html2canvas: { scale: 2, backgroundColor: "#ffffff" },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+      })
+      .from(node)
+      .save();
+    node.remove();
+  } catch (err) {
+    alert("Couldn't generate PDF: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+function buildReportNode(data, photoDataUrl) {
+  const top1 = data.top_3[0];
+  const now = new Date().toLocaleString();
+  const wrap = document.createElement("div");
+  wrap.id = "pdf-report";
+  wrap.style.cssText = "position:fixed;left:-9999px;top:0;width:7.5in;background:#fff;color:#111;font-family:Inter,sans-serif;padding:0;";
+  const resultsHtml = data.low_confidence
+    ? `<div style="padding:18px;background:#fdf2ee;border-left:4px solid #b85c4a;border-radius:4px;margin:16px 0;">
+         <strong style="color:#b85c4a;">No confident match.</strong>
+         The model wasn't confident this image matches any of the seven trained categories.
+       </div>`
+    : `<div style="margin:16px 0;">
+         <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.14em;color:#6b7280;font-weight:700;margin-bottom:6px;">Top guess</div>
+         <div style="font-size:28px;font-weight:700;color:#111;letter-spacing:-0.02em;margin-bottom:6px;">${escapeHtml(top1.name)}</div>
+         <div style="font-size:13px;color:#374151;">
+           <span style="display:inline-block;padding:3px 10px;border-radius:999px;background:${top1.malignancy === "benign" ? "#eef3ec" : "#fdf2ee"};color:${top1.malignancy === "benign" ? "#557255" : "#b85c4a"};font-weight:700;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;margin-right:8px;">${escapeHtml(top1.malignancy)}</span>
+           ${Math.round(top1.probability * 100)}% confidence (${escapeHtml(top1.code)})
+         </div>
+       </div>
+       <div style="margin:20px 0;">
+         <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.14em;color:#6b7280;font-weight:700;margin-bottom:10px;">All three guesses</div>
+         ${data.top_3.map(g => `
+           <div style="display:flex;align-items:center;gap:12px;margin:8px 0;font-size:13px;">
+             <div style="flex:1;color:#111;">${escapeHtml(g.name)} <span style="color:#6b7280;font-size:11px;">(${escapeHtml(g.code)}, ${escapeHtml(g.malignancy)})</span></div>
+             <div style="width:160px;background:#f3f4f6;border-radius:4px;height:6px;overflow:hidden;"><div style="width:${(g.probability * 100).toFixed(1)}%;background:#6f8a6a;height:100%;"></div></div>
+             <div style="width:40px;text-align:right;font-weight:600;color:#111;">${Math.round(g.probability * 100)}%</div>
+           </div>
+         `).join("")}
+       </div>`;
+  wrap.innerHTML = `
+    <div style="padding:24px 32px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:baseline;gap:10px;">
+        <div style="width:10px;height:10px;background:#6f8a6a;border-radius:50%;"></div>
+        <span style="font-weight:800;letter-spacing:0.04em;color:#111;font-size:16px;">KONSEI</span>
+        <span style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#6b7280;font-weight:500;border-left:1px solid #e5e7eb;padding-left:10px;">Skin Lab</span>
+      </div>
+      <div style="font-size:11px;color:#6b7280;">${escapeHtml(now)}</div>
+    </div>
+    <div style="padding:28px 32px;">
+      <h1 style="font-size:24px;font-weight:700;letter-spacing:-0.02em;margin:0 0 16px;color:#111;">Scan report</h1>
+      <div style="display:flex;gap:20px;align-items:flex-start;">
+        <img src="${photoDataUrl}" style="width:200px;height:200px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;flex-shrink:0;" alt="Scanned photo"/>
+        <div style="flex:1;">${resultsHtml}</div>
+      </div>
+      <div style="margin-top:32px;padding:16px;background:#f9fafb;border-radius:6px;font-size:11px;line-height:1.55;color:#374151;">
+        <strong>Not a diagnosis.</strong> This report is generated by a learning-project ML model trained on ~10k dermatoscopic images.
+        It is not a medical device and has not been clinically validated. If you're concerned about something on your skin, please
+        see a licensed dermatologist. See konsei.app for the full limitations write-up.
+      </div>
+    </div>
+  `;
+  return wrap;
+}
+
+$("#btn-download-pdf").addEventListener("click", downloadReportPdf);
+
 // ---------- Scan history (localStorage, device-only) ----------
 const HISTORY_KEY = "konsei-history";
 const HISTORY_MAX = 10;
