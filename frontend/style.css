@@ -163,14 +163,16 @@ button { font-family: inherit; }
 }
 .theme-toggle:hover { color: var(--ink); border-color: var(--ink); background: var(--line-soft); }
 .theme-toggle:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
-.theme-toggle .icon-moon { display: none; }
-.theme-toggle .icon-sun { display: block; }
-/* Flip the icon in dark mode (and show "sun" meaning "switch to light") */
-:root[data-theme="dark"] .theme-toggle .icon-sun,
+/* Default (light mode): show the moon icon, meaning "click to switch to dark". */
+.theme-toggle .icon-moon { display: block; }
+.theme-toggle .icon-sun { display: none; }
+/* Dark mode: show the sun icon, meaning "click to switch to light". */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .theme-toggle .icon-sun { display: block; }
+  :root:not([data-theme="light"]) .theme-toggle .icon-sun  { display: block; }
   :root:not([data-theme="light"]) .theme-toggle .icon-moon { display: none; }
 }
+:root[data-theme="dark"] .theme-toggle .icon-sun  { display: block; }
+:root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
 .site-footer {
   padding: 36px 24px;
