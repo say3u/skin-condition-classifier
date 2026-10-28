@@ -32,6 +32,7 @@
       </div>
     </div>
     <div class="site-nav">
+      <button type="button" id="btn-quiz" class="nav-link-btn" aria-label="Open quiz">Quiz</button>
       <button type="button" id="btn-history" class="nav-link-btn" aria-label="View scan history">History</button>
       <button type="button" id="btn-theme" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
         <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -155,6 +156,35 @@
           Replies are AI-generated and not medical advice.
         </p>
       </section>
+    </section>
+
+    <!-- ============ Screen 5: Quiz (education) ============ -->
+    <section class="screen" data-screen="quiz">
+      <header class="quiz-header">
+        <h2 class="quiz-title">Spot the condition</h2>
+        <p class="quiz-sub">A short quiz to learn what each of the seven categories looks like in text.</p>
+      </header>
+      <div id="quiz-stage">
+        <div class="quiz-progress">
+          <span id="quiz-progress-text">Question 1 of 10</span>
+          <span id="quiz-score">0 correct</span>
+        </div>
+        <div class="quiz-card">
+          <p class="quiz-prompt" id="quiz-prompt"></p>
+          <ul class="quiz-signs" id="quiz-signs"></ul>
+        </div>
+        <div class="quiz-options" id="quiz-options"></div>
+        <p class="quiz-feedback" id="quiz-feedback"></p>
+      </div>
+      <div id="quiz-finished" hidden>
+        <div class="quiz-score-final" id="quiz-final-text"></div>
+        <p class="quiz-score-sub" id="quiz-final-sub"></p>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-primary" id="btn-quiz-next" hidden>Next question</button>
+        <button class="btn btn-primary" id="btn-quiz-again" hidden>Play again</button>
+        <button class="btn btn-secondary" id="btn-quiz-exit">Back to capture</button>
+      </div>
     </section>
 
     <!-- ============ Screen 4: Scan history (localStorage, this device only) ============ -->

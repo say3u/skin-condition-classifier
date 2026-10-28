@@ -140,6 +140,7 @@ const screens = {
   results: $('[data-screen="results"]'),
   info: $('[data-screen="info"]'),
   history: $('[data-screen="history"]'),
+  quiz:    $('[data-screen="quiz"]'),
 };
 
 const cameraVideo = $("#camera-video");
@@ -616,6 +617,105 @@ function escapeHtml(s) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
+// ---------- Quiz: Spot the condition ----------
+const QUIZ_LENGTH = 10;
+const quizState = { index: 0, score: 0, currentCode: null, currentChoices: [] };
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function nextQuizQuestion() {
+  const codes = Object.keys(CONDITION_INFO);
+  const correct = codes[Math.floor(Math.random() * codes.length)];
+  const distractors = shuffle(codes.filter(c => c !== correct)).slice(0, 3);
+  quizState.currentCode = correct;
+  quizState.currentChoices = shuffle([correct, ...distractors]);
+  const info = CONDITION_INFO[correct];
+  $("#quiz-prompt").textContent = "Based on these signs, which condition is it?";
+  const signsSample = shuffle(info.signs).slice(0, Math.min(3, info.signs.length));
+  $("#quiz-signs").innerHTML = signsSample.map(s => `<li>${escapeHtml(s)}</li>`).join("");
+  const optionsDiv = $("#quiz-options");
+  optionsDiv.innerHTML = "";
+  for (const code of quizState.currentChoices) {
+    const btn = document.createElement("button");
+    btn.className = "btn btn-secondary quiz-option";
+    btn.textContent = CONDITION_INFO[code].title;
+    btn.dataset.code = code;
+    btn.addEventListener("click", () => handleQuizAnswer(code, btn));
+    optionsDiv.appendChild(btn);
+  }
+  $("#quiz-feedback").textContent = "";
+  $("#quiz-feedback").className = "quiz-feedback";
+  $("#btn-quiz-next").hidden = true;
+  $("#quiz-progress-text").textContent = `Question ${quizState.index + 1} of ${QUIZ_LENGTH}`;
+  $("#quiz-score").textContent = `${quizState.score} correct`;
+}
+
+function handleQuizAnswer(pickedCode, pickedBtn) {
+  const correct = quizState.currentCode;
+  const isRight = pickedCode === correct;
+  if (isRight) quizState.score++;
+  // Lock buttons, highlight correct and the picked one
+  for (const btn of $("#quiz-options").querySelectorAll("button")) {
+    btn.disabled = true;
+    const code = btn.dataset.code;
+    if (code === correct) btn.classList.add("quiz-correct");
+    else if (btn === pickedBtn) btn.classList.add("quiz-wrong");
+  }
+  const info = CONDITION_INFO[correct];
+  $("#quiz-feedback").textContent = isRight
+    ? `Correct. ${info.tagline}`
+    : `It was ${info.title}. ${info.tagline}`;
+  $("#quiz-feedback").classList.add(isRight ? "right" : "wrong");
+  $("#quiz-score").textContent = `${quizState.score} correct`;
+  $("#btn-quiz-next").hidden = false;
+  $("#btn-quiz-next").textContent = quizState.index + 1 >= QUIZ_LENGTH ? "See final score" : "Next question";
+}
+
+function advanceQuiz() {
+  quizState.index++;
+  if (quizState.index >= QUIZ_LENGTH) {
+    finishQuiz();
+  } else {
+    nextQuizQuestion();
+  }
+}
+
+function finishQuiz() {
+  $("#quiz-stage").hidden = true;
+  $("#quiz-finished").hidden = false;
+  const pct = Math.round((quizState.score / QUIZ_LENGTH) * 100);
+  $("#quiz-final-text").textContent = `${quizState.score} / ${QUIZ_LENGTH}  (${pct}%)`;
+  let msg;
+  if (pct >= 90) msg = "You've basically memorized the ABCDE rule. Nice.";
+  else if (pct >= 70) msg = "Solid. Most people couldn't tell a dermatofibroma from a dermatologist.";
+  else if (pct >= 40) msg = "Not bad — read the Info screens for anything you missed.";
+  else msg = "The categories are tricky. Play again, you'll climb fast.";
+  $("#quiz-final-sub").textContent = msg;
+  $("#btn-quiz-next").hidden = true;
+  $("#btn-quiz-again").hidden = false;
+}
+
+function startQuiz() {
+  quizState.index = 0;
+  quizState.score = 0;
+  $("#quiz-stage").hidden = false;
+  $("#quiz-finished").hidden = true;
+  $("#btn-quiz-again").hidden = true;
+  nextQuizQuestion();
+}
+
+$("#btn-quiz").addEventListener("click", () => { startQuiz(); showScreen("quiz"); });
+$("#btn-quiz-next").addEventListener("click", advanceQuiz);
+$("#btn-quiz-again").addEventListener("click", startQuiz);
+$("#btn-quiz-exit").addEventListener("click", () => showScreen("capture"));
 
 // ---------- PDF report download ----------
 let _html2pdfPromise = null;
