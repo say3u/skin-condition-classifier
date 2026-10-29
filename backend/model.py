@@ -9,6 +9,8 @@ from PIL import Image
 from torchvision import models, transforms
 from torchvision.models import EfficientNet_B0_Weights
 
+from backend.calibration import load_temperature
+
 MALIGNANCY = {
     "akiec": "pre-cancerous",
     "bcc":   "cancerous",
@@ -48,13 +50,15 @@ def load_model(model_path: Path) -> dict[str, Any]:
         transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
     ])
 
-    print(f"[model] ready - {len(classes)} classes")
+    temperature = load_temperature()
+    print(f"[model] ready - {len(classes)} classes, temperature={temperature}")
     return {
         "model": model,
         "device": device,
         "classes": classes,
         "full_names": full_names,
         "preprocess": preprocess,
+        "temperature": temperature,
     }
 
 
@@ -62,7 +66,11 @@ def predict_top3(bundle: dict[str, Any], image: Image.Image) -> dict[str, Any]:
     """Run inference and shape the response the frontend wants."""
     x = bundle["preprocess"](image.convert("RGB")).unsqueeze(0).to(bundle["device"])
     with torch.no_grad():
-        probs = torch.softmax(bundle["model"](x), dim=1).squeeze(0).cpu().numpy()
+        logits = bundle["model"](x)
+        # Temperature scaling: divide logits by T before softmax for calibrated probabilities.
+        # T=1.0 is a no-op (identical to uncalibrated behavior).
+        logits = logits / bundle.get("temperature", 1.0)
+        probs = torch.softmax(logits, dim=1).squeeze(0).cpu().numpy()
 
     top_idx = probs.argsort()[::-1][:3]
     classes = bundle["classes"]

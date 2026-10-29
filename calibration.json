@@ -1,0 +1,9 @@
+{
+  "temperature": 1.0,
+  "notes": "Placeholder (no calibration applied yet). Run scripts/calibrate_temperature.py on a GPU to replace with the optimal T computed on the HAM10000 validation set.",
+  "computed_on": null,
+  "val_nll_before": null,
+  "val_nll_after": null,
+  "val_ece_before": null,
+  "val_ece_after": null
+}
