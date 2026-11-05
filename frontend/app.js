@@ -690,8 +690,8 @@ function handleQuizAnswer(pickedCode, pickedBtn) {
   }
   const info = CONDITION_INFO[correct];
   $("#quiz-feedback").textContent = isRight
-    ? `Correct. ${info.tagline}`
-    : `It was ${info.title}. ${info.tagline}`;
+    ? `Correct.`
+    : `It was ${info.title}.`;
   $("#quiz-feedback").classList.add(isRight ? "right" : "wrong");
   $("#quiz-score").textContent = `${quizState.score} correct`;
   $("#btn-quiz-next").hidden = false;
@@ -710,14 +710,8 @@ function advanceQuiz() {
 function finishQuiz() {
   $("#quiz-stage").hidden = true;
   $("#quiz-finished").hidden = false;
-  const pct = Math.round((quizState.score / QUIZ_LENGTH) * 100);
-  $("#quiz-final-text").textContent = `${quizState.score} / ${QUIZ_LENGTH}  (${pct}%)`;
-  let msg;
-  if (pct >= 90) msg = "You've basically memorized the ABCDE rule. Nice.";
-  else if (pct >= 70) msg = "Solid. Most people couldn't tell a dermatofibroma from a dermatologist.";
-  else if (pct >= 40) msg = "Not bad — read the Info screens for anything you missed.";
-  else msg = "The categories are tricky. Play again, you'll climb fast.";
-  $("#quiz-final-sub").textContent = msg;
+  $("#quiz-final-text").textContent = `${quizState.score} / ${QUIZ_LENGTH}`;
+  $("#quiz-final-sub").textContent = "";
   $("#btn-quiz-next").hidden = true;
   $("#btn-quiz-again").hidden = false;
 }
