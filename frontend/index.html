@@ -32,8 +32,17 @@
       </div>
     </div>
     <div class="site-nav">
-      <button type="button" id="btn-quiz" class="nav-link-btn" aria-label="Open quiz">Quiz</button>
-      <button type="button" id="btn-history" class="nav-link-btn" aria-label="View scan history">History</button>
+      <div class="nav-overflow">
+        <button type="button" class="nav-overflow-btn" id="btn-nav-more" aria-label="More" aria-expanded="false" aria-haspopup="true" title="More">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+            <circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>
+          </svg>
+        </button>
+        <div class="nav-overflow-menu" id="nav-overflow-menu" role="menu" hidden>
+          <button type="button" id="btn-quiz" class="nav-overflow-item" role="menuitem">Quiz</button>
+          <button type="button" id="btn-history" class="nav-overflow-item" role="menuitem">History</button>
+        </div>
+      </div>
       <button type="button" id="btn-theme" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
         <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="4"/>

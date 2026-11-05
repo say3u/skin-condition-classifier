@@ -618,6 +618,25 @@ function escapeHtml(s) {
     .replace(/'/g, "&#39;");
 }
 
+// ---------- Nav overflow menu ----------
+(function initNavOverflow() {
+  const btn = document.getElementById("btn-nav-more");
+  const menu = document.getElementById("nav-overflow-menu");
+  if (!btn || !menu) return;
+  function close() { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = !menu.hidden;
+    menu.hidden = open;
+    btn.setAttribute("aria-expanded", String(!open));
+  });
+  document.addEventListener("click", (e) => {
+    if (!menu.hidden && !e.target.closest(".nav-overflow")) close();
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  menu.querySelectorAll(".nav-overflow-item").forEach(item => item.addEventListener("click", close));
+})();
+
 // ---------- Quiz: Spot the condition ----------
 const QUIZ_LENGTH = 10;
 const quizState = { index: 0, score: 0, currentCode: null, currentChoices: [] };

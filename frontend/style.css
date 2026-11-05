@@ -139,23 +139,48 @@ button { font-family: inherit; }
 
 .site-nav { display: flex; align-items: center; gap: 14px; }
 
-/* Text-only header buttons (History) match the GitHub link styling. */
-.nav-link-btn {
+/* Overflow menu: hides secondary entries (Quiz, History) behind a dots button */
+.nav-overflow { position: relative; display: inline-flex; }
+.nav-overflow-btn {
+  width: 36px; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  color: var(--ink-mute);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+}
+.nav-overflow-btn:hover { color: var(--ink); border-color: var(--ink); background: var(--line-soft); }
+.nav-overflow-btn:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
+
+.nav-overflow-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  min-width: 140px;
+  padding: 6px 0;
+  z-index: 100;
+}
+.nav-overflow-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
   background: transparent;
   border: 0;
-  padding: 0;
   cursor: pointer;
   font-family: inherit;
-  font-size: 13px;
-  color: var(--ink-mute);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-weight: 600;
-  border-bottom: 1px solid transparent;
-  padding-bottom: 2px;
-  transition: color 0.18s, border-color 0.18s;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.12s;
 }
-.nav-link-btn:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.nav-overflow-item:hover { background: var(--line-soft); }
 
 .site-link {
   font-size: 13px;
