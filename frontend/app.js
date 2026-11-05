@@ -749,9 +749,8 @@ function loadHtml2Pdf() {
 async function downloadReportPdf() {
   if (!lastResult || !capturedBlob) return;
   const btn = $("#btn-download-pdf");
-  const originalLabel = btn.textContent;
   btn.disabled = true;
-  btn.textContent = "Preparing PDF...";
+  btn.classList.add("is-busy");
   try {
     const html2pdf = await loadHtml2Pdf();
     const photoUrl = await new Promise(r => {
@@ -777,7 +776,7 @@ async function downloadReportPdf() {
     alert("Couldn't generate PDF: " + err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = originalLabel;
+    btn.classList.remove("is-busy");
   }
 }
 

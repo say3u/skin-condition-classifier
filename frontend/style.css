@@ -448,18 +448,23 @@ button { font-family: inherit; }
 }
 .btn:disabled:hover { background: var(--cream-deep); color: var(--ink-mute); }
 
-/* Ghost button for low-priority tertiary actions (PDF download, etc.) */
-.btn-ghost {
+/* Icon-only button for tertiary actions (download, swap, etc.) */
+.btn-icon {
+  flex: 0 0 auto;
+  width: 44px;
   background: transparent;
   color: var(--ink-mute);
-  border-color: transparent;
-  padding: 10px 16px;
-  font-weight: 500;
-  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
 }
-.btn-ghost:hover { color: var(--ink); background: var(--line-soft); border-color: var(--line); }
-.action-row.secondary-row { margin-top: 8px; }
-.action-row.secondary-row .btn { flex: 0; }
+.btn-icon:hover { color: var(--ink); border-color: var(--ink); background: var(--line-soft); }
+.btn-icon:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
+.btn-icon:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ============================================================
    Results screen
